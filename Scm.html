@@ -1,0 +1,3138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enterprise Supply Chain Management Dashboard</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📊</text></svg>"">
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- D3.js -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    
+    <style>
+        :root {
+            --sap-blue: #0073e6;
+            --oracle-red: #ff0000;
+            --microsoft-blue: #00bcf2;
+            --blue-yonder: #1e3a8a;
+            --zoho-orange: #ff6900;
+            --transporeon-green: #4caf50;
+            --cerasis-purple: #6f42c1;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            min-height: 100vh;
+            margin: 0;
+            color: #212529;
+        }
+
+        .dashboard-header {
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(10px);
+            padding: 1rem 0;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .platform-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+            min-height: 400px;
+        }
+
+        .platform-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .platform-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #eee;
+        }
+
+        .platform-logo {
+            width: 40px;
+            height: 40px;
+            margin-right: 1rem;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .sap-theme { border-left: 4px solid var(--sap-blue); }
+        .oracle-theme { border-left: 4px solid var(--oracle-red); }
+        .microsoft-theme { border-left: 4px solid var(--microsoft-blue); }
+        .blue-yonder-theme { border-left: 4px solid var(--blue-yonder); }
+        .zoho-theme { border-left: 4px solid var(--zoho-orange); }
+        .transporeon-theme { border-left: 4px solid var(--transporeon-green); }
+        .cerasis-theme { border-left: 4px solid var(--cerasis-purple); }
+
+        .metric-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            text-align: center;
+            border: 1px solid #dee2e6;
+        }
+
+        .metric-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-label {
+            font-size: 0.9rem;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+        }
+
+        .status-online { background-color: #28a745; }
+        .status-warning { background-color: #ffc107; }
+        .status-offline { background-color: #dc3545; }
+
+        .data-table {
+            font-size: 0.85rem;
+        }
+
+        .data-table th {
+            background-color: #f8f9fa;
+            border-bottom: 2px solid #dee2e6;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 200px;
+            margin-top: 1rem;
+        }
+
+        .unified-dashboard {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 2rem 0;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .alert-item {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 8px;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            border-left: 4px solid #dc3545;
+            font-size: 0.85rem;
+        }
+
+        .nav-pills .nav-link {
+            border-radius: 25px;
+            margin: 0 0.25rem;
+            font-weight: 500;
+        }
+
+        .nav-pills .nav-link.active {
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+            color: white;
+        }
+
+        .nav-pills .nav-link {
+            color: #495057;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .integration-flow {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 1rem 0;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        .flow-node {
+            background: white;
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .flow-arrow {
+            color: #6c757d;
+            font-size: 1.2rem;
+        }
+
+        @media (max-width: 768px) {
+            .platform-card {
+                margin-bottom: 1rem;
+                padding: 1rem;
+            }
+            
+            .chart-container {
+                height: 150px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Dashboard Header -->
+    <header class="dashboard-header">
+        <div class="container-fluid">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h1 class="h3 mb-0">
+                        <i class="fas fa-chart-line text-primary me-2"></i>
+                        Enterprise Supply Chain Management Dashboard
+                    </h1>
+                </div>
+                <div class="col-md-6 text-end">
+                    <div class="d-flex align-items-center justify-content-end">
+                        <span class="status-indicator status-online"></span>
+                        <span class="me-3">All Systems Operational</span>
+                        <span class="text-muted" id="lastUpdate">Last updated: --</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container-fluid py-4">
+        <!-- Navigation Tabs -->
+        <ul class="nav nav-pills justify-content-center mb-4" id="platformTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="unified-tab" data-bs-toggle="pill" data-bs-target="#unified" type="button" role="tab">
+                    <i class="fas fa-tachometer-alt me-2"></i>Unified Dashboard
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="sap-tab" data-bs-toggle="pill" data-bs-target="#sap" type="button" role="tab">
+                    <i class="fas fa-cube me-2"></i>SAP SCM
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="oracle-tab" data-bs-toggle="pill" data-bs-target="#oracle" type="button" role="tab">
+                    <i class="fas fa-database me-2"></i>Oracle SCM
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="microsoft-tab" data-bs-toggle="pill" data-bs-target="#microsoft" type="button" role="tab">
+                    <i class="fab fa-microsoft me-2"></i>Dynamics 365
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="forecasting-tab" data-bs-toggle="pill" data-bs-target="#forecasting" type="button" role="tab">
+                    <i class="fas fa-chart-line me-2"></i>Demand & Forecasting
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="inventory-tab" data-bs-toggle="pill" data-bs-target="#inventory" type="button" role="tab">
+                    <i class="fas fa-boxes me-2"></i>Inventory
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="transportation-tab" data-bs-toggle="pill" data-bs-target="#transportation" type="button" role="tab">
+                    <i class="fas fa-truck me-2"></i>Transportation
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="visibility-tab" data-bs-toggle="pill" data-bs-target="#visibility" type="button" role="tab">
+                    <i class="fas fa-eye me-2"></i>Supply Chain Visibility
+                </button>
+            </li>
+        </ul>
+
+        <!-- Tab Content -->
+        <div class="tab-content" id="platformTabsContent">
+            <!-- Unified Dashboard -->
+            <div class="tab-pane fade show active" id="unified" role="tabpanel">
+                <div class="unified-dashboard">
+                    <h2 class="mb-4">
+                        <i class="fas fa-globe me-2"></i>
+                        Integrated Supply Chain Overview
+                    </h2>
+                    
+                    <!-- Key Metrics Row -->
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="metric-card">
+                                <div class="metric-value text-primary" id="totalOrders">0</div>
+                                <div class="metric-label">Total Orders</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="metric-card">
+                                <div class="metric-value text-success" id="inventoryValue">$0</div>
+                                <div class="metric-label">Inventory Value</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="metric-card">
+                                <div class="metric-value text-warning" id="activeShipments">0</div>
+                                <div class="metric-label">Active Shipments</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="metric-card">
+                                <div class="metric-value text-info" id="supplierPerformance">0%</div>
+                                <div class="metric-label">Supplier Performance</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Integration Flow -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h5><i class="fas fa-sitemap me-2"></i>Platform Integration Flow</h5>
+                            <div class="integration-flow">
+                                <div class="flow-node" style="background-color: var(--sap-blue); color: white;">SAP SCM</div>
+                                <div class="flow-arrow"><i class="fas fa-arrow-right"></i></div>
+                                <div class="flow-node" style="background-color: var(--oracle-red); color: white;">Oracle SCM</div>
+                                <div class="flow-arrow"><i class="fas fa-arrow-right"></i></div>
+                                <div class="flow-node" style="background-color: var(--microsoft-blue); color: white;">Dynamics 365</div>
+                                <div class="flow-arrow"><i class="fas fa-arrow-right"></i></div>
+                                <div class="flow-node" style="background-color: var(--blue-yonder); color: white;">Blue Yonder</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Interactive Data Input Section -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="platform-card" style="background: linear-gradient(135deg, #e3f2fd 0%, #f8f9fa 100%);">
+                                <h5><i class="fas fa-keyboard me-2"></i>Real-Time Data Input & Output Demo</h5>
+                                <p class="text-muted">Enter data below and see immediate updates across the dashboard</p>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="orderInput" class="form-label">New Order Amount</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text">$</span>
+                                                <input type="number" class="form-control" id="orderInput" placeholder="50000">
+                                                <button class="btn btn-primary" onclick="addOrder()">Add Order</button>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label for="inventoryInput" class="form-label">Update Inventory</label>
+                                            <div class="input-group">
+                                                <select class="form-select" id="productSelect">
+                                                    <option value="Widget A">Widget A</option>
+                                                    <option value="Component B">Component B</option>
+                                                    <option value="Part C">Part C</option>
+                                                </select>
+                                                <input type="number" class="form-control" id="inventoryInput" placeholder="500">
+                                                <button class="btn btn-success" onclick="updateInventory()">Update</button>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label for="alertInput" class="form-label">Create Custom Alert</label>
+                                            <div class="input-group">
+                                                <input type="text" class="form-control" id="alertInput" placeholder="Enter alert message">
+                                                <button class="btn btn-warning" onclick="addCustomAlert()">Send Alert</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-6">
+                                        <h6><i class="fas fa-bolt me-2"></i>Live Output</h6>
+                                        <div id="liveOutput" style="background: #f8f9fa; border-radius: 8px; padding: 1rem; min-height: 200px; border: 2px dashed #dee2e6;">
+                                            <p class="text-muted mb-0">Output will appear here when you input data...</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Charts Row -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5><i class="fas fa-chart-bar me-2"></i>Supply Chain Performance</h5>
+                            <div class="chart-container">
+                                <canvas id="performanceChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h5><i class="fas fa-exclamation-triangle me-2"></i>Real-time Alerts</h5>
+                            <div id="alertsContainer" style="max-height: 200px; overflow-y: auto;">
+                                <!-- Alerts will be populated by JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SAP SCM Tab -->
+            <div class="tab-pane fade" id="sap" role="tabpanel">
+                <!-- SAP Real-time Input Section -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="platform-card" style="background: linear-gradient(135deg, #e3f2fd 0%, #f8f9fa 100%); border-left: 4px solid var(--sap-blue);">
+                            <h5><i class="fas fa-cube me-2"></i>SAP SCM Real-Time Operations</h5>
+                            <p class="text-muted">Create purchase orders and manage planning cycles in real-time</p>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="sapSupplier" class="form-label">Create Purchase Order</label>
+                                        <div class="input-group mb-2">
+                                            <input type="text" class="form-control" id="sapSupplier" placeholder="Supplier Name">
+                                            <input type="number" class="form-control" id="sapAmount" placeholder="Amount">
+                                            <button class="btn btn-primary" onclick="createSAPOrder()">Create PO</button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="sapPlanningCycle" class="form-label">Start Planning Cycle</label>
+                                        <div class="input-group">
+                                            <select class="form-select" id="sapPlanningType">
+                                                <option value="Demand Planning">Demand Planning</option>
+                                                <option value="Supply Planning">Supply Planning</option>
+                                                <option value="Production Planning">Production Planning</option>
+                                            </select>
+                                            <button class="btn btn-success" onclick="startPlanningCycle()">Start Cycle</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <h6><i class="fas fa-bolt me-2"></i>SAP Live Output</h6>
+                                    <div id="sapLiveOutput" style="background: #f8f9fa; border-radius: 8px; padding: 1rem; min-height: 150px; border: 2px dashed #dee2e6;">
+                                        <p class="text-muted mb-0">SAP operations will appear here...</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="platform-card sap-theme">
+                            <div class="platform-header">
+                                <div class="platform-logo" style="background-color: var(--sap-blue);">SAP</div>
+                                <div>
+                                    <h4 class="mb-1">SAP Supply Chain Management</h4>
+                                    <p class="text-muted mb-0">Procurement & Planning</p>
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <div class="metric-card">
+                                        <div class="metric-value text-primary" id="sapProcurement">0</div>
+                                        <div class="metric-label">Active POs</div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="metric-card">
+                                        <div class="metric-value text-success" id="sapPlanning">0</div>
+                                        <div class="metric-label">Planning Cycles</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h6><i class="fas fa-shopping-cart me-2"></i>Recent Purchase Orders</h6>
+                            <table class="table table-sm data-table">
+                                <thead>
+                                    <tr>
+                                        <th>PO Number</th>
+                                        <th>Supplier</th>
+                                        <th>Amount</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="sapPOTable">
+                                    <!-- Data populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="platform-card sap-theme">
+                            <h5><i class="fas fa-chart-area me-2"></i>SAP Analytics</h5>
+                            <div class="chart-container">
+                                <canvas id="sapChart"></canvas>
+                            </div>
+                            
+                            <h6 class="mt-3"><i class="fas fa-cogs me-2"></i>System Status</h6>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span>ERP Integration</span>
+                                <span><span class="status-indicator status-online"></span>Online</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span>Planning Engine</span>
+                                <span><span class="status-indicator status-online"></span>Running</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span>Procurement Module</span>
+                                <span><span class="status-indicator status-warning"></span>Maintenance</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Oracle SCM Tab -->
+            <div class="tab-pane fade" id="oracle" role="tabpanel">
+                <!-- Oracle Real-time Input Section -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="platform-card" style="background: linear-gradient(135deg, #ffebee 0%, #f8f9fa 100%); border-left: 4px solid var(--oracle-red);">
+                            <h5><i class="fas fa-database me-2"></i>Oracle SCM Real-Time Analytics</h5>
+                            <p class="text-muted">Run analytics and manage supplier performance in real-time</p>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="oracleSupplierName" class="form-label">Add/Update Supplier</label>
+                                        <div class="input-group mb-2">
+                                            <input type="text" class="form-control" id="oracleSupplierName" placeholder="Supplier Name">
+                                            <input type="number" class="form-control" id="oraclePerformance" placeholder="Performance %" min="0" max="100">
+                                            <button class="btn btn-danger" onclick="updateSupplierPerformance()">Update</button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="oracleRiskAlert" class="form-label">Create Risk Alert</label>
+                                        <div class="input-group">
+                                            <select class="form-select" id="oracleRiskType">
+                                                <option value="Supply Disruption">Supply Disruption</option>
+                                                <option value="Quality Issue">Quality Issue</option>
+                                                <option value="Delivery Delay">Delivery Delay</option>
+                                            </select>
+                                            <button class="btn btn-warning" onclick="createRiskAlert()">Create Alert</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <h6><i class="fas fa-bolt me-2"></i>Oracle Live Output</h6>
+                                    <div id="oracleLiveOutput" style="background: #f8f9fa; border-radius: 8px; padding: 1rem; min-height: 150px; border: 2px dashed #dee2e6;">
+                                        <p class="text-muted mb-0">Oracle analytics will appear here...</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="platform-card oracle-theme">
+                            <div class="platform-header">
+                                <div class="platform-logo" style="background-color: var(--oracle-red);">ORA</div>
+                                <div>
+                                    <h4 class="mb-1">Oracle Supply Chain Management</h4>
+                                    <p class="text-muted mb-0">Analytics & Visibility</p>
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-4">
+                                    <div class="metric-card">
+                                        <div class="metric-value text-danger" id="oracleVisibility">0%</div>
+                                        <div class="metric-label">Supply Visibility</div>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="metric-card">
+                                        <div class="metric-value text-info" id="oracleAnalytics">0</div>
+                                        <div class="metric-label">Active Analytics</div>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="metric-card">
+                                        <div class="metric-value text-warning" id="oracleRisk">0</div>
+                                        <div class="metric-label">Risk Alerts</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h6><i class="fas fa-chart-pie me-2"></i>Supply Chain Analytics</h6>
+                            <div class="chart-container">
+                                <canvas id="oracleChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="platform-card oracle-theme">
+                            <h5><i class="fas fa-eye me-2"></i>Supply Chain Visibility</h5>
+                            
+                            <h6 class="mt-3">Key Suppliers</h6>
+                            <table class="table table-sm data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Supplier</th>
+                                        <th>Performance</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="oracleSupplierTable">
+                                    <!-- Data populated by JavaScript -->
+                                </tbody>
+                            </table>
+
+                            <h6 class="mt-3">Risk Monitoring</h6>
+                            <div id="oracleRiskAlerts">
+                                <!-- Risk alerts populated by JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Microsoft Dynamics 365 Tab -->
+            <div class="tab-pane fade" id="microsoft" role="tabpanel">
+                <!-- D365 Real-time Input Section -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="platform-card" style="background: linear-gradient(135deg, #e1f5fe 0%, #f8f9fa 100%); border-left: 4px solid var(--microsoft-blue);">
+                            <h5><i class="fab fa-microsoft me-2"></i>Dynamics 365 Real-Time Warehouse Operations</h5>
+                            <p class="text-muted">Manage warehouse operations and track utilization in real-time</p>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="d365Warehouse" class="form-label">Update Warehouse Status</label>
+                                        <div class="input-group mb-2">
+                                            <select class="form-select" id="d365WarehouseLocation">
+                                                <option value="NY-01">NY-01</option>
+                                                <option value="CA-02">CA-02</option>
+                                                <option value="TX-03">TX-03</option>
+                                                <option value="FL-04">FL-04</option>
+                                            </select>
+                                            <input type="number" class="form-control" id="d365Utilization" placeholder="Utilization %" min="0" max="100">
+                                            <button class="btn btn-info" onclick="updateWarehouseStatus()">Update</button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="d365Operations" class="form-label">Start Operation</label>
+                                        <div class="input-group">
+                                            <select class="form-select" id="d365OperationType">
+                                                <option value="Receiving">Receiving</option>
+                                                <option value="Picking">Picking</option>
+                                                <option value="Shipping">Shipping</option>
+                                                <option value="Cycle Count">Cycle Count</option>
+                                            </select>
+                                            <button class="btn btn-primary" onclick="startD365Operation()">Start</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <h6><i class="fas fa-bolt me-2"></i>D365 Live Output</h6>
+                                    <div id="d365LiveOutput" style="background: #f8f9fa; border-radius: 8px; padding: 1rem; min-height: 150px; border: 2px dashed #dee2e6;">
+                                        <p class="text-muted mb-0">D365 operations will appear here...</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="platform-card microsoft-theme">
+                            <div class="platform-header">
+                                <div class="platform-logo" style="background-color: var(--microsoft-blue);">D365</div>
+                                <div>
+                                    <h4 class="mb-1">Microsoft Dynamics 365 SCM</h4>
+                                    <p class="text-muted mb-0">Operations & Warehouse Management</p>
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <div class="metric-card">
+                                        <div class="metric-value text-primary" id="d365OperationsMetric">0</div>
+                                        <div class="metric-label">Active Operations</div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="metric-card">
+                                        <div class="metric-value text-success" id="d365Warehouse">0%</div>
+                                        <div class="metric-label">Warehouse Capacity</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h6><i class="fas fa-warehouse me-2"></i>Warehouse Operations</h6>
+                            <table class="table table-sm data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Location</th>
+                                        <th>Utilization</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="d365WarehouseTable">
+                                    <!-- Data populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="platform-card microsoft-theme">
+                            <h5><i class="fas fa-chart-line me-2"></i>Operations Performance</h5>
+                            <div class="chart-container">
+                                <canvas id="d365Chart"></canvas>
+                            </div>
+
+                            <h6 class="mt-3"><i class="fas fa-tasks me-2"></i>Current Operations</h6>
+                            <div id="d365OperationsList">
+                                <!-- Operations data populated by JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Demand & Forecasting Tab -->
+            <div class="tab-pane fade" id="forecasting" role="tabpanel">
+                <!-- Blue Yonder Real-time Input Section -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="platform-card" style="background: linear-gradient(135deg, #e8eaf6 0%, #f8f9fa 100%); border-left: 4px solid var(--blue-yonder);">
+                            <h5><i class="fas fa-chart-line me-2"></i>Blue Yonder Real-Time Demand Forecasting</h5>
+                            <p class="text-muted">Run demand forecasts and analyze market signals in real-time</p>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="forecastProduct" class="form-label">Generate Forecast</label>
+                                        <div class="input-group mb-2">
+                                            <select class="form-select" id="forecastProduct">
+                                                <option value="Widget A">Widget A</option>
+                                                <option value="Component B">Component B</option>
+                                                <option value="Part C">Part C</option>
+                                            </select>
+                                            <input type="number" class="form-control" id="forecastPeriod" placeholder="Days" min="1" max="365">
+                                            <button class="btn btn-primary" onclick="generateForecast()">Generate</button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="demandSignal" class="form-label">Add Market Signal</label>
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" id="demandSignal" placeholder="Market signal description">
+                                            <select class="form-select" id="signalImpact">
+                                                <option value="High">High Impact</option>
+                                                <option value="Medium">Medium Impact</option>
+                                                <option value="Low">Low Impact</option>
+                                            </select>
+                                            <button class="btn btn-warning" onclick="addMarketSignal()">Add Signal</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <h6><i class="fas fa-bolt me-2"></i>Blue Yonder Live Output</h6>
+                                    <div id="forecastLiveOutput" style="background: #f8f9fa; border-radius: 8px; padding: 1rem; min-height: 150px; border: 2px dashed #dee2e6;">
+                                        <p class="text-muted mb-0">Forecast results will appear here...</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="platform-card blue-yonder-theme">
+                            <div class="platform-header">
+                                <div class="platform-logo" style="background-color: var(--blue-yonder);">BY</div>
+                                <div>
+                                    <h4 class="mb-1">Blue Yonder Demand Forecasting</h4>
+                                    <p class="text-muted mb-0">Predictive Analytics & AI</p>
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-4">
+                                    <div class="metric-card">
+                                        <div class="metric-value text-primary" id="forecastAccuracy">0%</div>
+                                        <div class="metric-label">Forecast Accuracy</div>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="metric-card">
+                                        <div class="metric-value text-success" id="demandSignals">0</div>
+                                        <div class="metric-label">Demand Signals</div>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="metric-card">
+                                        <div class="metric-value text-warning" id="forecastModels">0</div>
+                                        <div class="metric-label">Active Models</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h6><i class="fas fa-brain me-2"></i>Demand Forecasting</h6>
+                            <div class="chart-container">
+                                <canvas id="forecastChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="platform-card blue-yonder-theme">
+                            <h5><i class="fas fa-robot me-2"></i>AI Models Status</h5>
+                            
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span>Demand Sensing</span>
+                                <span><span class="status-indicator status-online"></span>Active</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span>Price Optimization</span>
+                                <span><span class="status-indicator status-online"></span>Running</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <span>Inventory Planning</span>
+                                <span><span class="status-indicator status-warning"></span>Training</span>
+                            </div>
+
+                            <h6>Recent Predictions</h6>
+                            <div id="forecastPredictions">
+                                <!-- Predictions populated by JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Inventory Management Tab -->
+            <div class="tab-pane fade" id="inventory" role="tabpanel">
+                <!-- Zoho Real-time Input Section -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="platform-card" style="background: linear-gradient(135deg, #fff3e0 0%, #f8f9fa 100%); border-left: 4px solid var(--zoho-orange);">
+                            <h5><i class="fas fa-boxes me-2"></i>Zoho Real-Time Inventory Management</h5>
+                            <p class="text-muted">Manage inventory levels and stock alerts in real-time</p>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="inventoryProduct" class="form-label">Update Stock Level</label>
+                                        <div class="input-group mb-2">
+                                            <select class="form-select" id="inventoryProduct">
+                                                <option value="Widget A">Widget A</option>
+                                                <option value="Component B">Component B</option>
+                                                <option value="Part C">Part C</option>
+                                                <option value="Module D">Module D</option>
+                                                <option value="Assembly E">Assembly E</option>
+                                            </select>
+                                            <input type="number" class="form-control" id="newStockLevel" placeholder="New Stock Level" min="0">
+                                            <button class="btn btn-success" onclick="updateStockLevel()">Update</button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="stockAlert" class="form-label">Set Stock Alert</label>
+                                        <div class="input-group">
+                                            <input type="number" class="form-control" id="alertThreshold" placeholder="Alert Threshold" min="0">
+                                            <select class="form-select" id="alertType">
+                                                <option value="Low Stock">Low Stock</option>
+                                                <option value="Out of Stock">Out of Stock</option>
+                                                <option value="Overstock">Overstock</option>
+                                            </select>
+                                            <button class="btn btn-warning" onclick="setStockAlert()">Set Alert</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <h6><i class="fas fa-bolt me-2"></i>Zoho Live Output</h6>
+                                    <div id="inventoryLiveOutput" style="background: #f8f9fa; border-radius: 8px; padding: 1rem; min-height: 150px; border: 2px dashed #dee2e6;">
+                                        <p class="text-muted mb-0">Inventory updates will appear here...</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="platform-card zoho-theme">
+                            <div class="platform-header">
+                                <div class="platform-logo" style="background-color: var(--zoho-orange);">ZHO</div>
+                                <div>
+                                    <h4 class="mb-1">Zoho Inventory Management</h4>
+                                    <p class="text-muted mb-0">Stock Tracking & Alerts</p>
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <div class="metric-card">
+                                        <div class="metric-value text-primary" id="zohoItems">0</div>
+                                        <div class="metric-label">Items Tracked</div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="metric-card">
+                                        <div class="metric-value text-danger" id="zohoAlerts">0</div>
+                                        <div class="metric-label">Stock Alerts</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h6><i class="fas fa-cubes me-2"></i>Inventory Levels</h6>
+                            <table class="table table-sm data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Product</th>
+                                        <th>Stock</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="zohoInventoryTable">
+                                    <!-- Data populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="platform-card zoho-theme">
+                            <h5><i class="fas fa-chart-donut me-2"></i>Inventory Distribution</h5>
+                            <div class="chart-container">
+                                <canvas id="inventoryChart"></canvas>
+                            </div>
+
+                            <h6 class="mt-3"><i class="fas fa-bell me-2"></i>Stock Alerts</h6>
+                            <div id="inventoryAlerts">
+                                <!-- Alerts populated by JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Transportation Management Tab -->
+            <div class="tab-pane fade" id="transportation" role="tabpanel">
+                <!-- Transportation Real-time Input Section -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="platform-card" style="background: linear-gradient(135deg, #e8f5e8 0%, #f8f9fa 100%); border-left: 4px solid var(--transporeon-green);">
+                            <h5><i class="fas fa-truck me-2"></i>Transportation Real-Time Management</h5>
+                            <p class="text-muted">Manage shipments and optimize routes with Transporeon & Cerasis</p>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="shipmentCreate" class="form-label">Create Shipment</label>
+                                        <div class="input-group mb-2">
+                                            <input type="text" class="form-control" id="shipmentOrigin" placeholder="Origin">
+                                            <input type="text" class="form-control" id="shipmentDestination" placeholder="Destination">
+                                            <select class="form-select" id="carrierSelect">
+                                                <option value="FedEx">FedEx</option>
+                                                <option value="UPS">UPS</option>
+                                                <option value="DHL">DHL</option>
+                                                <option value="USPS">USPS</option>
+                                            </select>
+                                            <button class="btn btn-primary" onclick="createShipment()">Create</button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="routeOptimize" class="form-label">Route Optimization</label>
+                                        <div class="input-group">
+                                            <input type="number" class="form-control" id="routeDistance" placeholder="Distance (miles)" min="1">
+                                            <select class="form-select" id="optimizationType">
+                                                <option value="Cost">Cost Optimization</option>
+                                                <option value="Time">Time Optimization</option>
+                                                <option value="Fuel">Fuel Efficiency</option>
+                                            </select>
+                                            <button class="btn btn-success" onclick="optimizeRoute()">Optimize</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <h6><i class="fas fa-bolt me-2"></i>Transportation Live Output</h6>
+                                    <div id="transportationLiveOutput" style="background: #f8f9fa; border-radius: 8px; padding: 1rem; min-height: 150px; border: 2px dashed #dee2e6;">
+                                        <p class="text-muted mb-0">Transportation updates will appear here...</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="platform-card transporeon-theme">
+                            <div class="platform-header">
+                                <div class="platform-logo" style="background-color: var(--transporeon-green);">TRP</div>
+                                <div>
+                                    <h4 class="mb-1">Transporeon TMS</h4>
+                                    <p class="text-muted mb-0">Carrier Network Management</p>
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <div class="metric-card">
+                                        <div class="metric-value text-success" id="transporeonCarriers">0</div>
+                                        <div class="metric-label">Active Carriers</div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="metric-card">
+                                        <div class="metric-value text-primary" id="transporeonShipments">0</div>
+                                        <div class="metric-label">Active Shipments</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h6><i class="fas fa-truck me-2"></i>Active Shipments</h6>
+                            <table class="table table-sm data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Shipment ID</th>
+                                        <th>Carrier</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="transporeonShipmentTable">
+                                    <!-- Data populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="platform-card cerasis-theme">
+                            <div class="platform-header">
+                                <div class="platform-logo" style="background-color: var(--cerasis-purple);">CER</div>
+                                <div>
+                                    <h4 class="mb-1">Cerasis Freight Management</h4>
+                                    <p class="text-muted mb-0">Shipping Optimization</p>
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <div class="metric-card">
+                                        <div class="metric-value text-warning" id="cerasisFreight">$0</div>
+                                        <div class="metric-label">Freight Cost</div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="metric-card">
+                                        <div class="metric-value text-info" id="cerasisOptimization">0%</div>
+                                        <div class="metric-label">Cost Savings</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h5><i class="fas fa-route me-2"></i>Route Optimization</h5>
+                            <div class="chart-container">
+                                <canvas id="transportationChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Supply Chain Visibility Tab -->
+            <div class="tab-pane fade" id="visibility" role="tabpanel">
+                <!-- Visibility Real-time Input Section -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="platform-card" style="background: linear-gradient(135deg, #f3e5f5 0%, #f8f9fa 100%); border-left: 4px solid #9c27b0;">
+                            <h5><i class="fas fa-eye me-2"></i>Supply Chain Visibility & Tracking</h5>
+                            <p class="text-muted">Real-time visibility with FourKites and E2Open integration</p>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="trackShipment" class="form-label">Track Shipment</label>
+                                        <div class="input-group mb-2">
+                                            <input type="text" class="form-control" id="shipmentTrackingId" placeholder="Shipment ID">
+                                            <select class="form-select" id="trackingProvider">
+                                                <option value="FourKites">FourKites</option>
+                                                <option value="E2Open">E2Open</option>
+                                            </select>
+                                            <button class="btn btn-primary" onclick="trackShipment()">Track</button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="visibilityAlert" class="form-label">Create Visibility Alert</label>
+                                        <div class="input-group">
+                                            <select class="form-select" id="alertEventType">
+                                                <option value="Delay Alert">Delay Alert</option>
+                                                <option value="ETA Change">ETA Change</option>
+                                                <option value="Exception">Exception</option>
+                                                <option value="Delivery Confirmation">Delivery Confirmation</option>
+                                            </select>
+                                            <input type="text" class="form-control" id="alertDescription" placeholder="Alert description">
+                                            <button class="btn btn-warning" onclick="createVisibilityAlert()">Create Alert</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <h6><i class="fas fa-bolt me-2"></i>Visibility Live Output</h6>
+                                    <div id="visibilityLiveOutput" style="background: #f8f9fa; border-radius: 8px; padding: 1rem; min-height: 150px; border: 2px dashed #dee2e6;">
+                                        <p class="text-muted mb-0">Visibility tracking results will appear here...</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="platform-card" style="border-left: 4px solid #ff6b35;">
+                            <div class="platform-header">
+                                <div class="platform-logo" style="background-color: #ff6b35; color: white;">4K</div>
+                                <div>
+                                    <h4 class="mb-1">FourKites Real-Time Visibility</h4>
+                                    <p class="text-muted mb-0">End-to-End Supply Chain Tracking</p>
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <div class="metric-card">
+                                        <div class="metric-value text-primary" id="fourKitesShipments">0</div>
+                                        <div class="metric-label">Tracked Shipments</div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="metric-card">
+                                        <div class="metric-value text-success" id="fourKitesAccuracy">0%</div>
+                                        <div class="metric-label">ETA Accuracy</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h6><i class="fas fa-map-marker-alt me-2"></i>Active Shipments</h6>
+                            <table class="table table-sm data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Shipment ID</th>
+                                        <th>Status</th>
+                                        <th>ETA</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="fourKitesShipmentTable">
+                                    <!-- Data populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="platform-card" style="border-left: 4px solid #1976d2;">
+                            <div class="platform-header">
+                                <div class="platform-logo" style="background-color: #1976d2; color: white;">E2</div>
+                                <div>
+                                    <h4 class="mb-1">E2Open Supply Chain Visibility</h4>
+                                    <p class="text-muted mb-0">Global Trading Network</p>
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <div class="metric-card">
+                                        <div class="metric-value text-warning" id="e2openNetworks">0</div>
+                                        <div class="metric-label">Trading Networks</div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="metric-card">
+                                        <div class="metric-value text-info" id="e2openCollaboration">0</div>
+                                        <div class="metric-label">Active Collaborations</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h6><i class="fas fa-network-wired me-2"></i>Network Status</h6>
+                            <div id="e2openNetworkStatus">
+                                <!-- Network status populated by JavaScript -->
+                            </div>
+
+                            <h6 class="mt-3"><i class="fas fa-exclamation-triangle me-2"></i>Risk Alerts</h6>
+                            <div id="e2openRiskAlerts">
+                                <!-- Risk alerts populated by JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Global variables for charts and data
+        let charts = {};
+        let mockData = {};
+
+        // API Configuration and Integration Layer
+        const apiConfig = {
+            sap: {
+                baseUrl: 'https://api.sap.com/s4hana/v1',
+                authEndpoint: 'https://api.sap.com/oauth/token',
+                endpoints: {
+                    purchaseOrders: '/procurement/purchase-orders',
+                    planning: '/planning/cycles',
+                    suppliers: '/master-data/suppliers'
+                }
+            },
+            oracle: {
+                baseUrl: 'https://api.oracle.com/scm/v1',
+                authEndpoint: 'https://api.oracle.com/auth/token',
+                endpoints: {
+                    suppliers: '/suppliers/performance',
+                    riskAlerts: '/risk-management/alerts',
+                    analytics: '/analytics/visibility'
+                }
+            },
+            dynamics365: {
+                baseUrl: 'https://api.businesscentral.dynamics.com/v2.0',
+                authEndpoint: 'https://login.microsoftonline.com/common/oauth2/v2.0/token',
+                endpoints: {
+                    warehouses: '/warehouses',
+                    operations: '/warehouse-operations',
+                    inventory: '/inventory-levels'
+                }
+            },
+            blueYonder: {
+                baseUrl: 'https://api.blueyonder.com/v1',
+                authEndpoint: 'https://api.blueyonder.com/oauth/token',
+                endpoints: {
+                    forecasts: '/demand-forecasting/forecasts',
+                    signals: '/market-signals',
+                    models: '/ai-models'
+                }
+            },
+            fourKites: {
+                baseUrl: 'https://api.fourkites.com/v1',
+                authEndpoint: 'https://api.fourkites.com/oauth/token',
+                endpoints: {
+                    shipments: '/shipments',
+                    tracking: '/tracking/real-time',
+                    alerts: '/alerts',
+                    analytics: '/analytics/performance'
+                }
+            },
+            e2open: {
+                baseUrl: 'https://api.e2open.com/scv/v1',
+                authEndpoint: 'https://api.e2open.com/auth/token',
+                endpoints: {
+                    visibility: '/supply-chain/visibility',
+                    networks: '/trading-networks',
+                    collaboration: '/supplier-collaboration',
+                    risks: '/risk-management'
+                }
+            }
+        };
+
+        // Enterprise API Client Class
+        class EnterpriseAPIClient {
+            constructor() {
+                this.tokens = {};
+                this.checkCredentials();
+            }
+
+            checkCredentials() {
+                // Check for environment variables (these would be set server-side)
+                this.hasCredentials = {
+                    sap: false, // Would check process.env.SAP_API_KEY etc.
+                    oracle: false,
+                    dynamics365: false,
+                    blueYonder: false,
+                    fourKites: false,
+                    e2open: false
+                };
+                
+                // Show connection status in dashboard
+                this.updateConnectionStatus();
+            }
+
+            updateConnectionStatus() {
+                const platforms = ['sap', 'oracle', 'dynamics365', 'blueYonder', 'fourKites', 'e2open'];
+                platforms.forEach(platform => {
+                    const status = this.hasCredentials[platform] ? 'Connected' : 'Not Connected';
+                    const color = this.hasCredentials[platform] ? '#28a745' : '#dc3545';
+                    
+                    // Add API status indicators to each platform
+                    this.addAPIStatusIndicator(platform, status, color);
+                });
+            }
+
+            addAPIStatusIndicator(platform, status, color) {
+                const alertsContainer = document.getElementById('alertsContainer');
+                if (alertsContainer && !this.hasCredentials[platform]) {
+                    const statusAlert = document.createElement('div');
+                    statusAlert.className = 'alert-item';
+                    statusAlert.style.background = '#fff3cd';
+                    statusAlert.style.borderLeft = '4px solid #856404';
+                    statusAlert.innerHTML = `
+                        <div style="color: #856404;">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>${platform.toUpperCase()} API:</strong> ${status}
+                            <br><small>Configure API credentials for live data integration</small>
+                        </div>
+                    `;
+                    alertsContainer.appendChild(statusAlert);
+                }
+            }
+
+            async fetchSAPData(endpoint, options = {}) {
+                if (!this.hasCredentials.sap) {
+                    this.showCredentialError('SAP SCM', 'SAP_API_KEY, SAP_CLIENT_ID, SAP_CLIENT_SECRET');
+                    return null;
+                }
+
+                try {
+                    // Authentication flow
+                    if (!this.tokens.sap) {
+                        const authResponse = await fetch(apiConfig.sap.authEndpoint, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                            body: new URLSearchParams({
+                                grant_type: 'client_credentials',
+                                client_id: 'YOUR_SAP_CLIENT_ID',
+                                client_secret: 'YOUR_SAP_CLIENT_SECRET'
+                            })
+                        });
+                        const authData = await authResponse.json();
+                        this.tokens.sap = authData.access_token;
+                    }
+
+                    // API call
+                    const response = await fetch(apiConfig.sap.baseUrl + endpoint, {
+                        headers: {
+                            'Authorization': `Bearer ${this.tokens.sap}`,
+                            'Content-Type': 'application/json'
+                        },
+                        ...options
+                    });
+
+                    return await response.json();
+                } catch (error) {
+                    this.showAPIError('SAP SCM', error.message);
+                    return null;
+                }
+            }
+
+            async fetchOracleData(endpoint, options = {}) {
+                if (!this.hasCredentials.oracle) {
+                    this.showCredentialError('Oracle SCM', 'ORACLE_SCM_API_KEY, ORACLE_USERNAME, ORACLE_PASSWORD');
+                    return null;
+                }
+
+                try {
+                    const response = await fetch(apiConfig.oracle.baseUrl + endpoint, {
+                        headers: {
+                            'Authorization': `Bearer YOUR_ORACLE_TOKEN`,
+                            'Content-Type': 'application/json'
+                        },
+                        ...options
+                    });
+
+                    return await response.json();
+                } catch (error) {
+                    this.showAPIError('Oracle SCM', error.message);
+                    return null;
+                }
+            }
+
+            async fetchDynamics365Data(endpoint, options = {}) {
+                if (!this.hasCredentials.dynamics365) {
+                    this.showCredentialError('Dynamics 365', 'DYNAMICS_365_CLIENT_ID, DYNAMICS_365_CLIENT_SECRET, DYNAMICS_365_TENANT_ID');
+                    return null;
+                }
+
+                try {
+                    const response = await fetch(apiConfig.dynamics365.baseUrl + endpoint, {
+                        headers: {
+                            'Authorization': `Bearer YOUR_D365_TOKEN`,
+                            'Content-Type': 'application/json'
+                        },
+                        ...options
+                    });
+
+                    return await response.json();
+                } catch (error) {
+                    this.showAPIError('Dynamics 365', error.message);
+                    return null;
+                }
+            }
+
+            async fetchBlueYonderData(endpoint, options = {}) {
+                if (!this.hasCredentials.blueYonder) {
+                    this.showCredentialError('Blue Yonder', 'BLUE_YONDER_API_KEY, BLUE_YONDER_CLIENT_ID');
+                    return null;
+                }
+
+                try {
+                    const response = await fetch(apiConfig.blueYonder.baseUrl + endpoint, {
+                        headers: {
+                            'X-API-Key': 'YOUR_BLUE_YONDER_API_KEY',
+                            'Authorization': `Bearer YOUR_BLUE_YONDER_TOKEN`,
+                            'Content-Type': 'application/json'
+                        },
+                        ...options
+                    });
+
+                    return await response.json();
+                } catch (error) {
+                    this.showAPIError('Blue Yonder', error.message);
+                    return null;
+                }
+            }
+
+            async fetchFourKitesData(endpoint, options = {}) {
+                if (!this.hasCredentials.fourKites) {
+                    this.showCredentialError('FourKites', 'FOURKITES_API_KEY, FOURKITES_CLIENT_ID');
+                    return null;
+                }
+
+                try {
+                    const response = await fetch(apiConfig.fourKites.baseUrl + endpoint, {
+                        headers: {
+                            'X-API-Key': 'YOUR_FOURKITES_API_KEY',
+                            'Authorization': `Bearer YOUR_FOURKITES_TOKEN`,
+                            'Content-Type': 'application/json'
+                        },
+                        ...options
+                    });
+
+                    return await response.json();
+                } catch (error) {
+                    this.showAPIError('FourKites', error.message);
+                    return null;
+                }
+            }
+
+            async fetchE2OpenData(endpoint, options = {}) {
+                if (!this.hasCredentials.e2open) {
+                    this.showCredentialError('E2Open', 'E2OPEN_API_KEY, E2OPEN_CLIENT_ID, E2OPEN_CLIENT_SECRET');
+                    return null;
+                }
+
+                try {
+                    const response = await fetch(apiConfig.e2open.baseUrl + endpoint, {
+                        headers: {
+                            'Authorization': `Bearer YOUR_E2OPEN_TOKEN`,
+                            'Content-Type': 'application/json'
+                        },
+                        ...options
+                    });
+
+                    return await response.json();
+                } catch (error) {
+                    this.showAPIError('E2Open', error.message);
+                    return null;
+                }
+            }
+
+            showCredentialError(platform, requiredKeys) {
+                const alertsContainer = document.getElementById('alertsContainer');
+                if (alertsContainer) {
+                    const errorAlert = document.createElement('div');
+                    errorAlert.className = 'alert-item';
+                    errorAlert.style.background = '#ffebee';
+                    errorAlert.style.borderLeft = '4px solid #d32f2f';
+                    errorAlert.innerHTML = `
+                        <div style="color: #d32f2f;">
+                            <i class="fas fa-key me-2"></i>
+                            <strong>${platform} Authentication Required:</strong>
+                            <br>Please configure: ${requiredKeys}
+                            <br><small>Contact your system administrator for API credentials</small>
+                        </div>
+                    `;
+                    alertsContainer.insertBefore(errorAlert, alertsContainer.firstChild);
+                }
+            }
+
+            showAPIError(platform, message) {
+                const alertsContainer = document.getElementById('alertsContainer');
+                if (alertsContainer) {
+                    const errorAlert = document.createElement('div');
+                    errorAlert.className = 'alert-item';
+                    errorAlert.style.background = '#ffebee';
+                    errorAlert.style.borderLeft = '4px solid #d32f2f';
+                    errorAlert.innerHTML = `
+                        <div style="color: #d32f2f;">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>${platform} API Error:</strong> ${message}
+                            <br><small>Using fallback demonstration data</small>
+                        </div>
+                    `;
+                    alertsContainer.insertBefore(errorAlert, alertsContainer.firstChild);
+                }
+            }
+        }
+
+        // Initialize API client
+        const apiClient = new EnterpriseAPIClient();
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeMockData();
+            initializeCharts();
+            updateDashboard();
+            
+            // Set up real-time data streaming
+            startRealTimeUpdates();
+            
+            // Update timestamp
+            updateTimestamp();
+            setInterval(updateTimestamp, 60000); // Update every minute
+        });
+
+        // Initialize mock data for all platforms
+        function initializeMockData() {
+            mockData = {
+                sap: {
+                    procurement: Math.floor(Math.random() * 50) + 20,
+                    planning: Math.floor(Math.random() * 15) + 5,
+                    purchaseOrders: generatePurchaseOrders()
+                },
+                oracle: {
+                    visibility: Math.floor(Math.random() * 30) + 70,
+                    analytics: Math.floor(Math.random() * 20) + 10,
+                    riskAlerts: Math.floor(Math.random() * 8) + 2,
+                    suppliers: generateSuppliers()
+                },
+                microsoft: {
+                    operations: Math.floor(Math.random() * 25) + 15,
+                    warehouseCapacity: Math.floor(Math.random() * 20) + 75,
+                    warehouses: generateWarehouses()
+                },
+                blueYonder: {
+                    accuracy: Math.floor(Math.random() * 15) + 80,
+                    demandSignals: Math.floor(Math.random() * 150) + 100,
+                    models: Math.floor(Math.random() * 8) + 5
+                },
+                zoho: {
+                    items: Math.floor(Math.random() * 500) + 1000,
+                    alerts: Math.floor(Math.random() * 15) + 5,
+                    inventory: generateInventory()
+                },
+                transporeon: {
+                    carriers: Math.floor(Math.random() * 50) + 25,
+                    shipments: Math.floor(Math.random() * 100) + 75,
+                    activeShipments: generateShipments()
+                },
+                cerasis: {
+                    freightCost: Math.floor(Math.random() * 50000) + 100000,
+                    optimization: Math.floor(Math.random() * 20) + 15
+                },
+                visibility: {
+                    fourKites: {
+                        shipments: 234,
+                        accuracy: 96,
+                        activeShipments: [
+                            { id: 'FK-001', status: 'In Transit', eta: '2 hours' },
+                            { id: 'FK-002', status: 'Delayed', eta: '4 hours' }, 
+                            { id: 'FK-003', status: 'On Schedule', eta: '1 hour' }
+                        ]
+                    },
+                    e2open: {
+                        networks: 45,
+                        collaboration: 128,
+                        networkStatus: [
+                            { name: 'North America', status: 'Operational', score: 98 },
+                            { name: 'Europe', status: 'Alert', score: 85 },
+                            { name: 'Asia Pacific', status: 'Operational', score: 92 }
+                        ],
+                        riskAlerts: [
+                            { level: 'Medium', message: 'Port congestion detected in Long Beach' },
+                            { level: 'Low', message: 'Supplier capacity constraints in Vietnam' }
+                        ]
+                    }
+                }
+            };
+        }
+
+        // Generate mock purchase orders for SAP
+        function generatePurchaseOrders() {
+            const orders = [];
+            const suppliers = ['Acme Corp', 'Global Supply', 'TechParts Inc', 'Industrial Co'];
+            const statuses = ['Pending', 'Approved', 'Shipped', 'Delivered'];
+            
+            for (let i = 0; i < 5; i++) {
+                orders.push({
+                    poNumber: `PO-${Math.floor(Math.random() * 10000) + 1000}`,
+                    supplier: suppliers[Math.floor(Math.random() * suppliers.length)],
+                    amount: `$${(Math.random() * 50000 + 5000).toFixed(0)}`,
+                    status: statuses[Math.floor(Math.random() * statuses.length)]
+                });
+            }
+            return orders;
+        }
+
+        // Generate mock suppliers for Oracle
+        function generateSuppliers() {
+            const suppliers = [];
+            const names = ['Alpha Industries', 'Beta Manufacturing', 'Gamma Corp', 'Delta Logistics'];
+            
+            for (let i = 0; i < 4; i++) {
+                suppliers.push({
+                    name: names[i],
+                    performance: `${Math.floor(Math.random() * 20) + 80}%`
+                });
+            }
+            return suppliers;
+        }
+
+        // Generate mock warehouses for Microsoft D365
+        function generateWarehouses() {
+            const warehouses = [];
+            const locations = ['NY-01', 'CA-02', 'TX-03', 'FL-04'];
+            
+            for (let i = 0; i < 4; i++) {
+                const utilization = Math.floor(Math.random() * 30) + 60;
+                warehouses.push({
+                    location: locations[i],
+                    utilization: `${utilization}%`,
+                    status: utilization > 85 ? 'High' : utilization > 70 ? 'Normal' : 'Low'
+                });
+            }
+            return warehouses;
+        }
+
+        // Generate mock inventory for Zoho
+        function generateInventory() {
+            const inventory = [];
+            const products = ['Widget A', 'Component B', 'Part C', 'Module D', 'Assembly E'];
+            
+            for (let i = 0; i < 5; i++) {
+                const stock = Math.floor(Math.random() * 500) + 50;
+                inventory.push({
+                    product: products[i],
+                    stock: stock,
+                    status: stock < 100 ? 'Low' : stock > 300 ? 'High' : 'Normal'
+                });
+            }
+            return inventory;
+        }
+
+        // Generate mock shipments for Transporeon
+        function generateShipments() {
+            const shipments = [];
+            const carriers = ['FedEx', 'UPS', 'DHL', 'USPS'];
+            const statuses = ['In Transit', 'Delivered', 'Pending', 'Delayed'];
+            
+            for (let i = 0; i < 4; i++) {
+                shipments.push({
+                    id: `SH-${Math.floor(Math.random() * 1000) + 100}`,
+                    carrier: carriers[i],
+                    status: statuses[Math.floor(Math.random() * statuses.length)]
+                });
+            }
+            return shipments;
+        }
+
+        // Initialize all charts
+        function initializeCharts() {
+            // Unified Dashboard Performance Chart
+            const performanceCtx = document.getElementById('performanceChart').getContext('2d');
+            charts.performance = new Chart(performanceCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                    datasets: [{
+                        label: 'Overall Performance',
+                        data: [85, 87, 86, 89, 91, 93],
+                        borderColor: 'rgb(75, 192, 192)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    }
+                }
+            });
+
+            // SAP Chart
+            const sapCtx = document.getElementById('sapChart').getContext('2d');
+            charts.sap = new Chart(sapCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Procurement', 'Planning', 'Analytics'],
+                    datasets: [{
+                        label: 'Efficiency',
+                        data: [92, 88, 95],
+                        backgroundColor: ['#0073e6', '#4a90e2', '#6bb6ff']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+
+            // Oracle Chart
+            const oracleCtx = document.getElementById('oracleChart').getContext('2d');
+            charts.oracle = new Chart(oracleCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Supply Chain', 'Analytics', 'Risk Management'],
+                    datasets: [{
+                        data: [45, 35, 20],
+                        backgroundColor: ['#ff0000', '#ff6666', '#ffcccc']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+
+            // D365 Chart
+            const d365Ctx = document.getElementById('d365Chart').getContext('2d');
+            charts.d365 = new Chart(d365Ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+                    datasets: [{
+                        label: 'Operations',
+                        data: [78, 82, 85, 88],
+                        borderColor: '#00bcf2',
+                        backgroundColor: 'rgba(0, 188, 242, 0.1)',
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+
+            // Forecast Chart
+            const forecastCtx = document.getElementById('forecastChart').getContext('2d');
+            charts.forecast = new Chart(forecastCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                    datasets: [{
+                        label: 'Actual',
+                        data: [100, 120, 115, 140, 155, 160],
+                        borderColor: '#1e3a8a',
+                        backgroundColor: 'rgba(30, 58, 138, 0.1)'
+                    }, {
+                        label: 'Forecast',
+                        data: [105, 125, 118, 145, 150, 165],
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        borderDash: [5, 5]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+
+            // Inventory Chart
+            const inventoryCtx = document.getElementById('inventoryChart').getContext('2d');
+            charts.inventory = new Chart(inventoryCtx, {
+                type: 'pie',
+                data: {
+                    labels: ['Raw Materials', 'WIP', 'Finished Goods'],
+                    datasets: [{
+                        data: [40, 25, 35],
+                        backgroundColor: ['#ff6900', '#ffb366', '#ffd9b3']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+
+            // Transportation Chart
+            const transportationCtx = document.getElementById('transportationChart').getContext('2d');
+            charts.transportation = new Chart(transportationCtx, {
+                type: 'radar',
+                data: {
+                    labels: ['Cost', 'Speed', 'Reliability', 'Coverage'],
+                    datasets: [{
+                        label: 'Performance',
+                        data: [85, 92, 88, 90],
+                        backgroundColor: 'rgba(111, 66, 193, 0.2)',
+                        borderColor: '#6f42c1',
+                        pointBackgroundColor: '#6f42c1'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        r: {
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    }
+                }
+            });
+        }
+
+        // Update all dashboard data
+        function updateDashboard() {
+            updateUnifiedDashboard();
+            updateSAPData();
+            updateOracleData();
+            updateMicrosoftData();
+            updateBlueYonderData();
+            updateZohoData();
+            updateTransportationData();
+            updateVisibilityData();
+        }
+
+        // Update unified dashboard
+        function updateUnifiedDashboard() {
+            document.getElementById('totalOrders').textContent = Math.floor(Math.random() * 500) + 1000;
+            document.getElementById('inventoryValue').textContent = `$${(Math.random() * 5000000 + 1000000).toFixed(0)}`;
+            document.getElementById('activeShipments').textContent = Math.floor(Math.random() * 200) + 150;
+            document.getElementById('supplierPerformance').textContent = `${Math.floor(Math.random() * 15) + 85}%`;
+
+            // Update alerts
+            updateAlerts();
+        }
+
+        // Update alerts container
+        function updateAlerts() {
+            const alertsContainer = document.getElementById('alertsContainer');
+            const alerts = [
+                'Supplier Alpha Industries - Delivery delay expected',
+                'Warehouse NY-01 - Capacity approaching 95%',
+                'Route optimization completed - 12% cost savings',
+                'Demand forecast updated for Widget A',
+                'Low stock alert for Component B'
+            ];
+
+            alertsContainer.innerHTML = '';
+            for (let i = 0; i < 3; i++) {
+                const alert = alerts[Math.floor(Math.random() * alerts.length)];
+                const alertDiv = document.createElement('div');
+                alertDiv.className = 'alert-item';
+                alertDiv.innerHTML = `<i class="fas fa-exclamation-triangle me-2"></i>${alert}`;
+                alertsContainer.appendChild(alertDiv);
+            }
+        }
+
+        // Update SAP data
+        function updateSAPData() {
+            document.getElementById('sapProcurement').textContent = mockData.sap.procurement;
+            document.getElementById('sapPlanning').textContent = mockData.sap.planning;
+
+            const sapTable = document.getElementById('sapPOTable');
+            sapTable.innerHTML = '';
+            mockData.sap.purchaseOrders.forEach(po => {
+                const row = sapTable.insertRow();
+                row.innerHTML = `
+                    <td>${po.poNumber}</td>
+                    <td>${po.supplier}</td>
+                    <td>${po.amount}</td>
+                    <td><span class="badge bg-${getStatusColor(po.status)}">${po.status}</span></td>
+                `;
+            });
+        }
+
+        // Update Oracle data
+        function updateOracleData() {
+            document.getElementById('oracleVisibility').textContent = `${mockData.oracle.visibility}%`;
+            document.getElementById('oracleAnalytics').textContent = mockData.oracle.analytics;
+            document.getElementById('oracleRisk').textContent = mockData.oracle.riskAlerts;
+
+            const supplierTable = document.getElementById('oracleSupplierTable');
+            supplierTable.innerHTML = '';
+            mockData.oracle.suppliers.forEach(supplier => {
+                const row = supplierTable.insertRow();
+                row.innerHTML = `
+                    <td>${supplier.name}</td>
+                    <td>${supplier.performance}</td>
+                `;
+            });
+
+            // Update risk alerts
+            const riskContainer = document.getElementById('oracleRiskAlerts');
+            riskContainer.innerHTML = '';
+            for (let i = 0; i < mockData.oracle.riskAlerts; i++) {
+                const alertDiv = document.createElement('div');
+                alertDiv.className = 'alert-item';
+                alertDiv.innerHTML = `<i class="fas fa-warning me-2"></i>Risk Alert ${i + 1}`;
+                riskContainer.appendChild(alertDiv);
+            }
+        }
+
+        // Update Microsoft D365 data
+        function updateMicrosoftData() {
+            // Update metrics with correct IDs
+            document.getElementById('d365OperationsMetric').textContent = mockData.microsoft.operations;
+            document.getElementById('d365Warehouse').textContent = `${mockData.microsoft.warehouseCapacity}%`;
+
+            const warehouseTable = document.getElementById('d365WarehouseTable');
+            warehouseTable.innerHTML = '';
+            mockData.microsoft.warehouses.forEach(warehouse => {
+                const row = warehouseTable.insertRow();
+                row.innerHTML = `
+                    <td>${warehouse.location}</td>
+                    <td>${warehouse.utilization}</td>
+                    <td><span class="badge bg-${getStatusColor(warehouse.status)}">${warehouse.status}</span></td>
+                `;
+            });
+
+            // Update Current Operations display
+            const operationsContainer = document.getElementById('d365OperationsList');
+            if (!operationsContainer) {
+                console.error('Operations container not found');
+                return;
+            }
+            
+            operationsContainer.innerHTML = '';
+            
+            // Initialize current operations if not exists
+            if (!mockData.microsoft.currentOperations) {
+                mockData.microsoft.currentOperations = [
+                    { id: 'OP-1001', type: 'Receiving', status: 'In Progress', location: 'NY-01' },
+                    { id: 'OP-1002', type: 'Picking', status: 'Completed', location: 'CA-02' },
+                    { id: 'OP-1003', type: 'Shipping', status: 'In Progress', location: 'TX-03' },
+                    { id: 'OP-1004', type: 'Cycle Count', status: 'Pending', location: 'FL-04' }
+                ];
+            }
+
+            mockData.microsoft.currentOperations.forEach(operation => {
+                const operationDiv = document.createElement('div');
+                operationDiv.className = 'alert-item';
+                operationDiv.style.marginBottom = '0.5rem';
+                operationDiv.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>${operation.id}</strong> - ${operation.type}
+                            <br><small class="text-muted">${operation.location}</small>
+                        </div>
+                        <span class="badge bg-${getStatusColor(operation.status)}">${operation.status}</span>
+                    </div>
+                `;
+                operationsContainer.appendChild(operationDiv);
+            });
+        }
+
+        // Update Blue Yonder data
+        function updateBlueYonderData() {
+            document.getElementById('forecastAccuracy').textContent = `${mockData.blueYonder.accuracy}%`;
+            document.getElementById('demandSignals').textContent = mockData.blueYonder.demandSignals;
+            document.getElementById('forecastModels').textContent = mockData.blueYonder.models;
+
+            // Update predictions
+            const predictionsContainer = document.getElementById('forecastPredictions');
+            predictionsContainer.innerHTML = '';
+            const predictions = ['Widget A demand +15%', 'Component B stable', 'Part C declining -8%'];
+            predictions.forEach(prediction => {
+                const predDiv = document.createElement('div');
+                predDiv.className = 'alert-item';
+                predDiv.innerHTML = `<i class="fas fa-chart-line me-2"></i>${prediction}`;
+                predictionsContainer.appendChild(predDiv);
+            });
+        }
+
+        // Update Zoho data
+        function updateZohoData() {
+            document.getElementById('zohoItems').textContent = mockData.zoho.items;
+            document.getElementById('zohoAlerts').textContent = mockData.zoho.alerts;
+
+            const inventoryTable = document.getElementById('zohoInventoryTable');
+            inventoryTable.innerHTML = '';
+            mockData.zoho.inventory.forEach(item => {
+                const row = inventoryTable.insertRow();
+                row.innerHTML = `
+                    <td>${item.product}</td>
+                    <td>${item.stock}</td>
+                    <td><span class="badge bg-${getStatusColor(item.status)}">${item.status}</span></td>
+                `;
+            });
+
+            // Update inventory alerts
+            const alertsContainer = document.getElementById('inventoryAlerts');
+            alertsContainer.innerHTML = '';
+            for (let i = 0; i < mockData.zoho.alerts; i++) {
+                const alertDiv = document.createElement('div');
+                alertDiv.className = 'alert-item';
+                alertDiv.innerHTML = `<i class="fas fa-exclamation-triangle me-2"></i>Low stock alert ${i + 1}`;
+                alertsContainer.appendChild(alertDiv);
+            }
+        }
+
+        // Update transportation data
+        function updateTransportationData() {
+            document.getElementById('transporeonCarriers').textContent = mockData.transporeon.carriers;
+            document.getElementById('transporeonShipments').textContent = mockData.transporeon.shipments;
+            document.getElementById('cerasisFreight').textContent = `$${mockData.cerasis.freightCost.toLocaleString()}`;
+            document.getElementById('cerasisOptimization').textContent = `${mockData.cerasis.optimization}%`;
+
+            const shipmentTable = document.getElementById('transporeonShipmentTable');
+            shipmentTable.innerHTML = '';
+            mockData.transporeon.activeShipments.forEach(shipment => {
+                const row = shipmentTable.insertRow();
+                row.innerHTML = `
+                    <td>${shipment.id}</td>
+                    <td>${shipment.carrier}</td>
+                    <td><span class="badge bg-${getStatusColor(shipment.status)}">${shipment.status}</span></td>
+                `;
+            });
+        }
+
+        // Get status color for badges
+        function getStatusColor(status) {
+            switch (status.toLowerCase()) {
+                case 'pending':
+                case 'low':
+                case 'delayed':
+                    return 'warning';
+                case 'approved':
+                case 'delivered':
+                case 'normal':
+                case 'in transit':
+                case 'high':
+                    return 'success';
+                case 'shipped':
+                case 'active':
+                    return 'info';
+                default:
+                    return 'secondary';
+            }
+        }
+
+        // Update timestamp
+        function updateTimestamp() {
+            const now = new Date();
+            document.getElementById('lastUpdate').textContent = `Last updated: ${now.toLocaleTimeString()}`;
+        }
+
+        // Simulate real-time data updates
+        function simulateRealTimeUpdates() {
+            // Randomly update some metrics
+            if (Math.random() > 0.7) {
+                mockData.sap.procurement += Math.floor(Math.random() * 3) - 1;
+                mockData.oracle.visibility += Math.floor(Math.random() * 5) - 2;
+                mockData.zoho.alerts += Math.floor(Math.random() * 2) - 1;
+                
+                // Ensure values stay within reasonable bounds
+                mockData.sap.procurement = Math.max(10, Math.min(100, mockData.sap.procurement));
+                mockData.oracle.visibility = Math.max(60, Math.min(100, mockData.oracle.visibility));
+                mockData.zoho.alerts = Math.max(0, Math.min(20, mockData.zoho.alerts));
+            }
+        }
+
+        // Add event listeners for tab changes
+        document.querySelectorAll('[data-bs-toggle="pill"]').forEach(tab => {
+            tab.addEventListener('shown.bs.tab', function(event) {
+                // Resize charts when tabs are shown
+                Object.values(charts).forEach(chart => {
+                    if (chart && chart.resize) {
+                        chart.resize();
+                    }
+                });
+            });
+        });
+
+        // Real-time data streaming functionality
+        function startRealTimeUpdates() {
+            // Simulate real-time data streaming every 5 seconds
+            setInterval(() => {
+                simulateRealTimeUpdates();
+                updateDashboard();
+                addRealTimeAlert();
+            }, 5000);
+
+            // Simulate chart data updates every 15 seconds
+            setInterval(updateChartData, 15000);
+            
+            // Live metrics animation
+            animateMetrics();
+        }
+
+        // Add random real-time alerts
+        function addRealTimeAlert() {
+            if (Math.random() > 0.8) { // 20% chance
+                const alerts = [
+                    'New shipment delayed - Route optimization needed',
+                    'Inventory threshold reached for Widget A',
+                    'SAP integration sync completed successfully',
+                    'Oracle demand forecast updated - 5% increase predicted',
+                    'Transportation cost optimization saved $2,500',
+                    'Blue Yonder AI model training completed'
+                ];
+                
+                const alertsContainer = document.getElementById('alertsContainer');
+                const alertDiv = document.createElement('div');
+                alertDiv.className = 'alert-item';
+                alertDiv.innerHTML = `
+                    <i class="fas fa-clock me-2"></i>
+                    ${alerts[Math.floor(Math.random() * alerts.length)]}
+                    <small class="text-muted d-block">${new Date().toLocaleTimeString()}</small>
+                `;
+                
+                // Add new alert at top
+                alertsContainer.insertBefore(alertDiv, alertsContainer.firstChild);
+                
+                // Keep only last 5 alerts
+                while (alertsContainer.children.length > 5) {
+                    alertsContainer.removeChild(alertsContainer.lastChild);
+                }
+                
+                // Animate new alert
+                alertDiv.style.opacity = '0';
+                alertDiv.style.transform = 'translateX(-20px)';
+                setTimeout(() => {
+                    alertDiv.style.transition = 'all 0.3s ease';
+                    alertDiv.style.opacity = '1';
+                    alertDiv.style.transform = 'translateX(0)';
+                }, 100);
+            }
+        }
+
+        // Update chart data with new points
+        function updateChartData() {
+            if (charts.performance) {
+                const chart = charts.performance;
+                // Add new data point
+                const newValue = Math.floor(Math.random() * 10) + 85;
+                chart.data.datasets[0].data.push(newValue);
+                chart.data.labels.push(new Date().toLocaleTimeString());
+                
+                // Keep only last 10 points
+                if (chart.data.datasets[0].data.length > 10) {
+                    chart.data.datasets[0].data.shift();
+                    chart.data.labels.shift();
+                }
+                
+                chart.update('none'); // Smooth update
+            }
+
+            // Update other charts similarly
+            Object.values(charts).forEach(chart => {
+                if (chart && chart.data && chart.data.datasets) {
+                    chart.data.datasets.forEach(dataset => {
+                        if (dataset.data && Array.isArray(dataset.data)) {
+                            // Add slight variation to existing data
+                            dataset.data = dataset.data.map(val => 
+                                Math.max(0, val + (Math.random() - 0.5) * 2)
+                            );
+                        }
+                    });
+                    chart.update('none');
+                }
+            });
+        }
+
+        // Animate metrics with pulsing effect
+        function animateMetrics() {
+            const metricValues = document.querySelectorAll('.metric-value');
+            metricValues.forEach(metric => {
+                setInterval(() => {
+                    if (Math.random() > 0.9) { // 10% chance
+                        metric.style.transform = 'scale(1.05)';
+                        metric.style.transition = 'transform 0.2s ease';
+                        setTimeout(() => {
+                            metric.style.transform = 'scale(1)';
+                        }, 200);
+                    }
+                }, 2000);
+            });
+        }
+
+        // Enhanced status indicators with real-time updates
+        function updateStatusIndicators() {
+            const indicators = document.querySelectorAll('.status-indicator');
+            indicators.forEach(indicator => {
+                if (Math.random() > 0.95) { // 5% chance to change status
+                    const statuses = ['status-online', 'status-warning', 'status-offline'];
+                    const currentStatus = Array.from(indicator.classList).find(cls => cls.startsWith('status-'));
+                    let newStatus = statuses[Math.floor(Math.random() * statuses.length)];
+                    
+                    if (currentStatus !== newStatus) {
+                        indicator.classList.remove(currentStatus);
+                        indicator.classList.add(newStatus);
+                    }
+                }
+            });
+        }
+
+        // Add live data streaming indicator
+        function addStreamingIndicator() {
+            const header = document.querySelector('.dashboard-header .col-md-6:last-child .d-flex');
+            const streamingDiv = document.createElement('div');
+            streamingDiv.className = 'me-3';
+            streamingDiv.innerHTML = `
+                <span class="status-indicator status-online" style="animation: pulse 2s infinite;"></span>
+                <span>Live Data Stream</span>
+            `;
+            header.insertBefore(streamingDiv, header.firstChild);
+        }
+
+        // Add CSS animation for live indicator
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes pulse {
+                0% { opacity: 1; }
+                50% { opacity: 0.5; }
+                100% { opacity: 1; }
+            }
+            
+            .metric-card:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+                transition: all 0.3s ease;
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Initialize streaming indicator when page loads
+        setTimeout(addStreamingIndicator, 1000);
+
+        // Interactive Data Input Functions
+        function addOrder() {
+            const orderValue = document.getElementById('orderInput').value;
+            if (!orderValue || orderValue <= 0) {
+                showOutput('❌ Please enter a valid order amount', 'error');
+                return;
+            }
+            
+            // Update total orders
+            const currentOrders = parseInt(document.getElementById('totalOrders').textContent);
+            const newTotal = currentOrders + 1;
+            document.getElementById('totalOrders').textContent = newTotal;
+            
+            // Update inventory value
+            const currentValue = parseFloat(document.getElementById('inventoryValue').textContent.replace('$', '').replace(',', ''));
+            const newValue = currentValue + parseFloat(orderValue);
+            document.getElementById('inventoryValue').textContent = `$${newValue.toLocaleString()}`;
+            
+            // Add to SAP purchase orders
+            if (mockData.sap && mockData.sap.purchaseOrders) {
+                const newPO = {
+                    poNumber: `PO-${Math.floor(Math.random() * 10000) + 1000}`,
+                    supplier: 'Live Input Co.',
+                    amount: `$${parseFloat(orderValue).toLocaleString()}`,
+                    status: 'Pending'
+                };
+                mockData.sap.purchaseOrders.unshift(newPO);
+                
+                // Keep only last 5 orders
+                if (mockData.sap.purchaseOrders.length > 5) {
+                    mockData.sap.purchaseOrders.pop();
+                }
+                
+                updateSAPData();
+            }
+            
+            showOutput(`✅ Order Added Successfully!
+                       📦 Order Amount: $${parseFloat(orderValue).toLocaleString()}
+                       🔢 Total Orders: ${newTotal}
+                       💰 Updated Inventory Value: $${newValue.toLocaleString()}
+                       📋 Added to SAP Purchase Orders`, 'success');
+            
+            // Clear input
+            document.getElementById('orderInput').value = '';
+            
+            // Add to alerts
+            addManualAlert('New order of $' + parseFloat(orderValue).toLocaleString() + ' added successfully');
+        }
+
+        function updateInventory() {
+            const product = document.getElementById('productSelect').value;
+            const quantity = document.getElementById('inventoryInput').value;
+            
+            if (!quantity || quantity <= 0) {
+                showOutput('❌ Please enter a valid quantity', 'error');
+                return;
+            }
+            
+            // Update inventory in mockData
+            if (mockData.zoho && mockData.zoho.inventory) {
+                const productIndex = mockData.zoho.inventory.findIndex(item => item.product === product);
+                if (productIndex >= 0) {
+                    const oldStock = mockData.zoho.inventory[productIndex].stock;
+                    mockData.zoho.inventory[productIndex].stock = parseInt(quantity);
+                    mockData.zoho.inventory[productIndex].status = quantity < 100 ? 'Low' : quantity > 300 ? 'High' : 'Normal';
+                    
+                    // Update Zoho data display
+                    updateZohoData();
+                    
+                    showOutput(`✅ Inventory Updated Successfully!
+                               📦 Product: ${product}
+                               📊 Previous Stock: ${oldStock}
+                               📊 New Stock: ${quantity}
+                               🏷️ Status: ${mockData.zoho.inventory[productIndex].status}
+                               🔄 Zoho Inventory Management Updated`, 'success');
+                }
+            }
+            
+            // Clear input
+            document.getElementById('inventoryInput').value = '';
+            
+            // Add to alerts
+            addManualAlert(`${product} inventory updated to ${quantity} units`);
+        }
+
+        function addManualAlert(message) {
+            const alertsContainer = document.getElementById('alertsContainer');
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert-item';
+            alertDiv.innerHTML = `
+                <i class="fas fa-user-check me-2"></i>
+                ${message}
+                <small class="text-muted d-block">${new Date().toLocaleTimeString()}</small>
+            `;
+            
+            // Add new alert at top with animation
+            alertDiv.style.opacity = '0';
+            alertDiv.style.transform = 'translateX(-20px)';
+            alertsContainer.insertBefore(alertDiv, alertsContainer.firstChild);
+            
+            setTimeout(() => {
+                alertDiv.style.transition = 'all 0.3s ease';
+                alertDiv.style.opacity = '1';
+                alertDiv.style.transform = 'translateX(0)';
+            }, 100);
+            
+            // Keep only last 5 alerts
+            while (alertsContainer.children.length > 5) {
+                alertsContainer.removeChild(alertsContainer.lastChild);
+            }
+        }
+
+        function addCustomAlert() {
+            const alertText = document.getElementById('alertInput').value.trim();
+            
+            if (!alertText) {
+                showOutput('❌ Please enter an alert message', 'error');
+                return;
+            }
+            
+            // Add to alerts container
+            const alertsContainer = document.getElementById('alertsContainer');
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert-item';
+            alertDiv.style.borderLeftColor = '#ffc107';
+            alertDiv.innerHTML = `
+                <i class="fas fa-user me-2"></i>
+                <strong>Custom Alert:</strong> ${alertText}
+                <small class="text-muted d-block">${new Date().toLocaleTimeString()}</small>
+            `;
+            
+            // Add new alert at top with animation
+            alertDiv.style.opacity = '0';
+            alertDiv.style.transform = 'translateX(-20px)';
+            alertsContainer.insertBefore(alertDiv, alertsContainer.firstChild);
+            
+            setTimeout(() => {
+                alertDiv.style.transition = 'all 0.3s ease';
+                alertDiv.style.opacity = '1';
+                alertDiv.style.transform = 'translateX(0)';
+            }, 100);
+            
+            // Keep only last 5 alerts
+            while (alertsContainer.children.length > 5) {
+                alertsContainer.removeChild(alertsContainer.lastChild);
+            }
+            
+            showOutput(`✅ Custom Alert Created!
+                       📢 Message: "${alertText}"
+                       ⏰ Time: ${new Date().toLocaleTimeString()}
+                       🔔 Added to Real-time Alerts Dashboard`, 'success');
+            
+            // Clear input
+            document.getElementById('alertInput').value = '';
+        }
+
+        function showOutput(message, type = 'info') {
+            const outputDiv = document.getElementById('liveOutput');
+            const timestamp = new Date().toLocaleTimeString();
+            
+            let icon = '📊';
+            let bgColor = '#e3f2fd';
+            let textColor = '#1976d2';
+            
+            if (type === 'success') {
+                icon = '✅';
+                bgColor = '#e8f5e8';
+                textColor = '#2e7d32';
+            } else if (type === 'error') {
+                icon = '❌';
+                bgColor = '#ffebee';
+                textColor = '#d32f2f';
+            }
+            
+            outputDiv.innerHTML = `
+                <div style="background: ${bgColor}; border-radius: 8px; padding: 1rem; border-left: 4px solid ${textColor};">
+                    <div style="color: ${textColor}; font-weight: 600; margin-bottom: 0.5rem;">
+                        ${icon} Live Data Processing Result
+                    </div>
+                    <div style="white-space: pre-line; color: #333; font-family: monospace; font-size: 0.9rem;">
+${message}
+                    </div>
+                    <div style="color: #666; font-size: 0.8rem; margin-top: 0.5rem;">
+                        ⏰ Processed at: ${timestamp}
+                    </div>
+                </div>
+            `;
+            
+            // Add pulsing animation
+            outputDiv.style.animation = 'pulse 0.5s ease-in-out';
+            setTimeout(() => {
+                outputDiv.style.animation = '';
+            }, 500);
+        }
+
+        // Platform-specific real-time processing functions
+
+        // SAP SCM Functions with API Integration
+        async function createSAPOrder() {
+            const supplier = document.getElementById('sapSupplier').value.trim();
+            const amount = document.getElementById('sapAmount').value;
+            
+            if (!supplier || !amount || amount <= 0) {
+                showPlatformOutput('sapLiveOutput', '❌ Please enter valid supplier name and amount', 'error');
+                return;
+            }
+            
+            showPlatformOutput('sapLiveOutput', '🔄 Connecting to SAP S/4HANA API...', 'info');
+            
+            // Attempt API call first
+            const orderData = {
+                supplier: supplier,
+                amount: parseFloat(amount),
+                requestDate: new Date().toISOString()
+            };
+            
+            const apiResult = await apiClient.fetchSAPData(apiConfig.sap.endpoints.purchaseOrders, {
+                method: 'POST',
+                body: JSON.stringify(orderData)
+            });
+            
+            // Create new PO (using API data if available, otherwise mock)
+            const newPO = {
+                poNumber: apiResult?.poNumber || `PO-${Math.floor(Math.random() * 10000) + 1000}`,
+                supplier: supplier,
+                amount: `$${parseFloat(amount).toLocaleString()}`,
+                status: apiResult?.status || 'Created'
+            };
+            
+            mockData.sap.purchaseOrders.unshift(newPO);
+            mockData.sap.procurement++;
+            
+            updateSAPData();
+            
+            const outputMessage = apiResult ? 
+                `✅ SAP S/4HANA Purchase Order Created via API!
+                 📋 PO Number: ${newPO.poNumber}
+                 🏢 Supplier: ${supplier}
+                 💰 Amount: $${parseFloat(amount).toLocaleString()}
+                 📊 Total Active POs: ${mockData.sap.procurement}
+                 🔗 SAP System: ${apiResult.systemId || 'Connected'}
+                 🔄 Real-time SAP SCM Integration Active` :
+                `✅ SAP Purchase Order Created (Demo Mode)!
+                 📋 PO Number: ${newPO.poNumber}
+                 🏢 Supplier: ${supplier}
+                 💰 Amount: $${parseFloat(amount).toLocaleString()}
+                 📊 Total Active POs: ${mockData.sap.procurement}
+                 ⚠️ Note: Configure SAP API credentials for live integration
+                 🔄 Using demonstration data`;
+            
+            showPlatformOutput('sapLiveOutput', outputMessage, apiResult ? 'success' : 'warning');
+            
+            document.getElementById('sapSupplier').value = '';
+            document.getElementById('sapAmount').value = '';
+            addManualAlert(`SAP: New PO ${newPO.poNumber} created for ${supplier} ${apiResult ? '(Live API)' : '(Demo)'}`);
+        }
+
+        function startPlanningCycle() {
+            const planningType = document.getElementById('sapPlanningType').value;
+            
+            mockData.sap.planning++;
+            updateSAPData();
+            
+            showPlatformOutput('sapLiveOutput', `✅ SAP Planning Cycle Started!
+                               📋 Type: ${planningType}
+                               🔄 Cycle ID: PC-${Math.floor(Math.random() * 1000) + 100}
+                               📊 Active Cycles: ${mockData.sap.planning}
+                               ⏱️ Estimated Duration: ${Math.floor(Math.random() * 4) + 2} hours
+                               🔄 SAP Planning Engine Activated`, 'success');
+            
+            addManualAlert(`SAP: ${planningType} cycle started`);
+        }
+
+        // Oracle SCM Functions with API Integration
+        async function updateSupplierPerformance() {
+            const supplierName = document.getElementById('oracleSupplierName').value.trim();
+            const performance = document.getElementById('oraclePerformance').value;
+            
+            if (!supplierName || !performance || performance < 0 || performance > 100) {
+                showPlatformOutput('oracleLiveOutput', '❌ Please enter valid supplier name and performance (0-100%)', 'error');
+                return;
+            }
+            
+            showPlatformOutput('oracleLiveOutput', '🔄 Connecting to Oracle SCM Cloud API...', 'info');
+            
+            // Attempt API call first
+            const supplierData = {
+                name: supplierName,
+                performance: performance,
+                updateTimestamp: new Date().toISOString()
+            };
+            
+            const apiResult = await apiClient.fetchOracleData(`${apiConfig.oracle.endpoints.suppliers}/${supplierName}`, {
+                method: 'PUT',
+                body: JSON.stringify(supplierData)
+            });
+            
+            // Update supplier in mockData
+            const existingSupplier = mockData.oracle.suppliers.find(s => s.name === supplierName);
+            if (existingSupplier) {
+                existingSupplier.performance = `${performance}%`;
+            } else {
+                mockData.oracle.suppliers.push({
+                    name: supplierName,
+                    performance: `${performance}%`
+                });
+            }
+            
+            updateOracleData();
+            
+            const outputMessage = apiResult ? 
+                `✅ Oracle SCM Cloud Supplier Updated via API!
+                 🏢 Supplier: ${supplierName}
+                 📊 Performance: ${performance}%
+                 📈 Status: ${performance >= 90 ? 'Excellent' : performance >= 75 ? 'Good' : 'Needs Improvement'}
+                 🔗 Oracle System: ${apiResult.instanceId || 'Connected'}
+                 🔄 Real-time Oracle SCM Analytics Updated
+                 📋 Live Supplier Database Synchronized` :
+                `✅ Oracle Supplier Updated (Demo Mode)!
+                 🏢 Supplier: ${supplierName}
+                 📊 Performance: ${performance}%
+                 📈 Status: ${performance >= 90 ? 'Excellent' : performance >= 75 ? 'Good' : 'Needs Improvement'}
+                 ⚠️ Note: Configure Oracle API credentials for live integration
+                 🔄 Using demonstration data`;
+            
+            showPlatformOutput('oracleLiveOutput', outputMessage, apiResult ? 'success' : 'warning');
+            
+            document.getElementById('oracleSupplierName').value = '';
+            document.getElementById('oraclePerformance').value = '';
+            addManualAlert(`Oracle: Supplier ${supplierName} performance updated to ${performance}% ${apiResult ? '(Live API)' : '(Demo)'}`);
+        }
+
+        function createRiskAlert() {
+            const riskType = document.getElementById('oracleRiskType').value;
+            
+            mockData.oracle.riskAlerts++;
+            updateOracleData();
+            
+            const riskId = `RISK-${Math.floor(Math.random() * 1000) + 100}`;
+            
+            showPlatformOutput('oracleLiveOutput', `⚠️ Oracle Risk Alert Created!
+                               🚨 Alert ID: ${riskId}
+                               📋 Type: ${riskType}
+                               ⚡ Priority: High
+                               📊 Total Risk Alerts: ${mockData.oracle.riskAlerts}
+                               🔄 Risk Management System Updated
+                               📧 Notifications Sent to Stakeholders`, 'warning');
+            
+            addManualAlert(`Oracle: ${riskType} risk alert created - ${riskId}`);
+        }
+
+        // Microsoft Dynamics 365 Functions
+        function updateWarehouseStatus() {
+            const location = document.getElementById('d365WarehouseLocation').value;
+            const utilization = document.getElementById('d365Utilization').value;
+            
+            if (!utilization || utilization < 0 || utilization > 100) {
+                showPlatformOutput('d365LiveOutput', '❌ Please enter valid utilization percentage (0-100%)', 'error');
+                return;
+            }
+            
+            // Update warehouse in mockData
+            const warehouse = mockData.microsoft.warehouses.find(w => w.location === location);
+            if (warehouse) {
+                warehouse.utilization = `${utilization}%`;
+                warehouse.status = utilization > 85 ? 'High' : utilization > 70 ? 'Normal' : 'Low';
+            }
+            
+            updateMicrosoftData();
+            
+            showPlatformOutput('d365LiveOutput', `✅ D365 Warehouse Updated!
+                               🏬 Location: ${location}
+                               📊 Utilization: ${utilization}%
+                               🏷️ Status: ${utilization > 85 ? 'High Capacity' : utilization > 70 ? 'Normal' : 'Low Utilization'}
+                               🔄 Dynamics 365 WMS Updated
+                               📋 Warehouse Dashboard Refreshed`, 'success');
+            
+            document.getElementById('d365Utilization').value = '';
+            addManualAlert(`D365: Warehouse ${location} utilization updated to ${utilization}%`);
+        }
+
+        function startD365Operation() {
+            const operationType = document.getElementById('d365OperationType').value;
+            
+            mockData.microsoft.operations++;
+            
+            // Initialize currentOperations if it doesn't exist
+            if (!mockData.microsoft.currentOperations) {
+                mockData.microsoft.currentOperations = [
+                    { id: 'OP-1001', type: 'Receiving', status: 'In Progress', location: 'NY-01' },
+                    { id: 'OP-1002', type: 'Picking', status: 'Completed', location: 'CA-02' },
+                    { id: 'OP-1003', type: 'Shipping', status: 'In Progress', location: 'TX-03' },
+                    { id: 'OP-1004', type: 'Cycle Count', status: 'Pending', location: 'FL-04' }
+                ];
+            }
+            
+            const operationId = `OP-${Math.floor(Math.random() * 10000) + 1000}`;
+            const locations = ['NY-01', 'CA-02', 'TX-03', 'FL-04'];
+            const randomLocation = locations[Math.floor(Math.random() * locations.length)];
+            
+            // Add new operation to current operations
+            const newOperation = {
+                id: operationId,
+                type: operationType,
+                status: 'In Progress',
+                location: randomLocation
+            };
+            
+            mockData.microsoft.currentOperations.unshift(newOperation);
+            
+            // Keep only last 5 operations
+            if (mockData.microsoft.currentOperations.length > 5) {
+                mockData.microsoft.currentOperations.pop();
+            }
+            
+            updateMicrosoftData();
+            
+            showPlatformOutput('d365LiveOutput', `✅ D365 Operation Started!
+                               🔄 Operation ID: ${operationId}
+                               📋 Type: ${operationType}
+                               🏬 Location: ${randomLocation}
+                               📊 Active Operations: ${mockData.microsoft.operations}
+                               ⏱️ Estimated Duration: ${Math.floor(Math.random() * 3) + 1} hours
+                               🔄 Dynamics 365 SCM Updated
+                               👥 Team Assigned and Notified`, 'success');
+            
+            addManualAlert(`D365: ${operationType} operation ${operationId} started at ${randomLocation}`);
+        }
+
+        // Blue Yonder Functions with API Integration
+        async function generateForecast() {
+            const product = document.getElementById('forecastProduct').value;
+            const period = document.getElementById('forecastPeriod').value;
+            
+            if (!period || period <= 0 || period > 365) {
+                showPlatformOutput('forecastLiveOutput', '❌ Please enter valid forecast period (1-365 days)', 'error');
+                return;
+            }
+            
+            showPlatformOutput('forecastLiveOutput', '🔄 Connecting to Blue Yonder AI Platform...', 'info');
+            
+            // Attempt API call first
+            const forecastRequest = {
+                product: product,
+                forecastHorizon: parseInt(period),
+                modelType: 'advanced_ml',
+                requestTimestamp: new Date().toISOString()
+            };
+            
+            const apiResult = await apiClient.fetchBlueYonderData(apiConfig.blueYonder.endpoints.forecasts, {
+                method: 'POST',
+                body: JSON.stringify(forecastRequest)
+            });
+            
+            // Use API data or generate mock data
+            const accuracy = apiResult?.accuracy || Math.floor(Math.random() * 15) + 80;
+            const demandChange = apiResult?.demandChange || (Math.random() - 0.5) * 30;
+            const confidence = apiResult?.confidence || Math.floor(Math.random() * 20) + 75;
+            const aiModel = apiResult?.modelVersion || 'Advanced Deep Learning';
+            
+            mockData.blueYonder.accuracy = accuracy;
+            mockData.blueYonder.demandSignals += Math.floor(Math.random() * 5) + 1;
+            updateBlueYonderData();
+            
+            const outputMessage = apiResult ? 
+                `🔮 Blue Yonder AI Forecast Generated via API!
+                 📦 Product: ${product}
+                 📅 Period: ${period} days
+                 📈 Demand Change: ${demandChange > 0 ? '+' : ''}${demandChange.toFixed(1)}%
+                 🎯 Accuracy: ${accuracy}%
+                 📊 Confidence Level: ${confidence}%
+                 🤖 AI Model: ${aiModel}
+                 🔗 Blue Yonder Platform: Connected
+                 📊 Live ML Pipeline Executed
+                 🔄 Real-time Forecast Database Updated` :
+                `🔮 Blue Yonder Forecast Generated (Demo Mode)!
+                 📦 Product: ${product}
+                 📅 Period: ${period} days
+                 📈 Demand Change: ${demandChange > 0 ? '+' : ''}${demandChange.toFixed(1)}%
+                 🎯 Accuracy: ${accuracy}%
+                 📊 Confidence Level: ${confidence}%
+                 🤖 AI Model: ${aiModel}
+                 ⚠️ Note: Configure Blue Yonder API credentials for live AI predictions
+                 🔄 Using demonstration forecast data`;
+            
+            showPlatformOutput('forecastLiveOutput', outputMessage, apiResult ? 'success' : 'warning');
+            
+            document.getElementById('forecastPeriod').value = '';
+            addManualAlert(`Blue Yonder: ${period}-day forecast generated for ${product} ${apiResult ? '(Live AI)' : '(Demo)'}`);
+        }
+
+        function addMarketSignal() {
+            const signal = document.getElementById('demandSignal').value.trim();
+            const impact = document.getElementById('signalImpact').value;
+            
+            if (!signal) {
+                showPlatformOutput('forecastLiveOutput', '❌ Please enter a market signal description', 'error');
+                return;
+            }
+            
+            mockData.blueYonder.demandSignals++;
+            updateBlueYonderData();
+            
+            showPlatformOutput('forecastLiveOutput', `📡 Market Signal Added!
+                               📢 Signal: ${signal}
+                               📊 Impact Level: ${impact}
+                               🔍 Signal ID: MS-${Math.floor(Math.random() * 1000) + 100}
+                               📈 Total Signals: ${mockData.blueYonder.demandSignals}
+                               🤖 AI Models Updating Predictions
+                               🔄 Demand Intelligence Enhanced`, 'success');
+            
+            document.getElementById('demandSignal').value = '';
+            addManualAlert(`Blue Yonder: Market signal added - ${impact} impact`);
+        }
+
+        // Zoho Inventory Functions
+        function updateStockLevel() {
+            const product = document.getElementById('inventoryProduct').value;
+            const newLevel = document.getElementById('newStockLevel').value;
+            
+            if (!newLevel || newLevel < 0) {
+                showPlatformOutput('inventoryLiveOutput', '❌ Please enter valid stock level (≥0)', 'error');
+                return;
+            }
+            
+            // Update inventory in mockData
+            const item = mockData.zoho.inventory.find(i => i.product === product);
+            if (item) {
+                const oldLevel = item.stock;
+                item.stock = parseInt(newLevel);
+                item.status = newLevel < 100 ? 'Low' : newLevel > 300 ? 'High' : 'Normal';
+                
+                updateZohoData();
+                
+                showPlatformOutput('inventoryLiveOutput', `📦 Zoho Inventory Updated!
+                                   🏷️ Product: ${product}
+                                   📊 Previous Level: ${oldLevel}
+                                   📊 New Level: ${newLevel}
+                                   🏷️ Status: ${item.status}
+                                   📈 Change: ${newLevel - oldLevel > 0 ? '+' : ''}${newLevel - oldLevel}
+                                   🔄 Zoho Inventory Management Updated`, 'success');
+            }
+            
+            document.getElementById('newStockLevel').value = '';
+            addManualAlert(`Zoho: ${product} stock updated to ${newLevel} units`);
+        }
+
+        function setStockAlert() {
+            const threshold = document.getElementById('alertThreshold').value;
+            const alertType = document.getElementById('alertType').value;
+            
+            if (!threshold || threshold < 0) {
+                showPlatformOutput('inventoryLiveOutput', '❌ Please enter valid alert threshold (≥0)', 'error');
+                return;
+            }
+            
+            mockData.zoho.alerts++;
+            updateZohoData();
+            
+            const alertId = `AL-${Math.floor(Math.random() * 1000) + 100}`;
+            
+            showPlatformOutput('inventoryLiveOutput', `🔔 Zoho Stock Alert Created!
+                               🆔 Alert ID: ${alertId}
+                               📊 Threshold: ${threshold} units
+                               🏷️ Type: ${alertType}
+                               📈 Total Alerts: ${mockData.zoho.alerts}
+                               🔄 Alert System Updated
+                               📧 Notifications Configured`, 'success');
+            
+            document.getElementById('alertThreshold').value = '';
+            addManualAlert(`Zoho: ${alertType} alert set with threshold ${threshold}`);
+        }
+
+        // Transportation Functions
+        function createShipment() {
+            const origin = document.getElementById('shipmentOrigin').value.trim();
+            const destination = document.getElementById('shipmentDestination').value.trim();
+            const carrier = document.getElementById('carrierSelect').value;
+            
+            if (!origin || !destination) {
+                showPlatformOutput('transportationLiveOutput', '❌ Please enter both origin and destination', 'error');
+                return;
+            }
+            
+            const shipmentId = `SH-${Math.floor(Math.random() * 10000) + 1000}`;
+            const newShipment = {
+                id: shipmentId,
+                carrier: carrier,
+                status: 'Created'
+            };
+            
+            mockData.transporeon.activeShipments.unshift(newShipment);
+            mockData.transporeon.shipments++;
+            updateTransportationData();
+            
+            showPlatformOutput('transportationLiveOutput', `🚛 Shipment Created Successfully!
+                               📋 Shipment ID: ${shipmentId}
+                               📍 Origin: ${origin}
+                               📍 Destination: ${destination}
+                               🚚 Carrier: ${carrier}
+                               📊 Total Shipments: ${mockData.transporeon.shipments}
+                               🔄 Transporeon TMS Updated
+                               📱 Tracking Number Generated`, 'success');
+            
+            document.getElementById('shipmentOrigin').value = '';
+            document.getElementById('shipmentDestination').value = '';
+            addManualAlert(`Transporeon: Shipment ${shipmentId} created via ${carrier}`);
+        }
+
+        function optimizeRoute() {
+            const distance = document.getElementById('routeDistance').value;
+            const optimizationType = document.getElementById('optimizationType').value;
+            
+            if (!distance || distance <= 0) {
+                showPlatformOutput('transportationLiveOutput', '❌ Please enter valid distance (>0 miles)', 'error');
+                return;
+            }
+            
+            const savings = Math.floor(Math.random() * 25) + 10;
+            const routeId = `RT-${Math.floor(Math.random() * 1000) + 100}`;
+            
+            mockData.cerasis.optimization = Math.min(mockData.cerasis.optimization + savings, 35);
+            updateTransportationData();
+            
+            showPlatformOutput('transportationLiveOutput', `🛣️ Route Optimized Successfully!
+                               🆔 Route ID: ${routeId}
+                               📏 Distance: ${distance} miles
+                               🎯 Optimization: ${optimizationType}
+                               💰 Cost Savings: ${savings}%
+                               ⏱️ Time Savings: ${Math.floor(Math.random() * 30) + 15} minutes
+                               🔄 Cerasis Optimization Engine Updated
+                               📊 Total Savings: ${mockData.cerasis.optimization}%`, 'success');
+            
+            document.getElementById('routeDistance').value = '';
+            addManualAlert(`Cerasis: Route optimized - ${savings}% savings achieved`);
+        }
+
+        // Update visibility data
+        function updateVisibilityData() {
+            document.getElementById('fourKitesShipments').textContent = mockData.visibility.fourKites.shipments;
+            document.getElementById('fourKitesAccuracy').textContent = `${mockData.visibility.fourKites.accuracy}%`;
+            document.getElementById('e2openNetworks').textContent = mockData.visibility.e2open.networks;
+            document.getElementById('e2openCollaboration').textContent = mockData.visibility.e2open.collaboration;
+
+            // Update FourKites shipment table
+            const fourKitesTable = document.getElementById('fourKitesShipmentTable');
+            fourKitesTable.innerHTML = '';
+            mockData.visibility.fourKites.activeShipments.forEach(shipment => {
+                const row = fourKitesTable.insertRow();
+                row.innerHTML = `
+                    <td>${shipment.id}</td>
+                    <td><span class="badge bg-${getStatusColor(shipment.status)}">${shipment.status}</span></td>
+                    <td>${shipment.eta}</td>
+                `;
+            });
+
+            // Update E2Open network status
+            const networkStatus = document.getElementById('e2openNetworkStatus');
+            networkStatus.innerHTML = '';
+            mockData.visibility.e2open.networkStatus.forEach(network => {
+                const networkDiv = document.createElement('div');
+                networkDiv.className = 'alert-item';
+                networkDiv.style.marginBottom = '0.5rem';
+                networkDiv.innerHTML = `
+                    <strong>${network.name}:</strong> 
+                    <span class="badge bg-${network.status === 'Operational' ? 'success' : 'warning'}">${network.status}</span>
+                    <small class="text-muted">(${network.score}%)</small>
+                `;
+                networkStatus.appendChild(networkDiv);
+            });
+
+            // Update E2Open risk alerts
+            const riskAlerts = document.getElementById('e2openRiskAlerts');
+            riskAlerts.innerHTML = '';
+            mockData.visibility.e2open.riskAlerts.forEach(alert => {
+                const alertDiv = document.createElement('div');
+                alertDiv.className = 'alert-item';
+                alertDiv.style.marginBottom = '0.5rem';
+                alertDiv.innerHTML = `
+                    <span class="badge bg-${alert.level === 'Medium' ? 'warning' : 'info'}">${alert.level}</span>
+                    ${alert.message}
+                `;
+                riskAlerts.appendChild(alertDiv);
+            });
+        }
+
+        // Visibility Functions with API Integration
+        async function trackShipment() {
+            const trackingId = document.getElementById('shipmentTrackingId').value.trim();
+            const provider = document.getElementById('trackingProvider').value;
+            
+            if (!trackingId) {
+                showPlatformOutput('visibilityLiveOutput', '❌ Please enter a shipment tracking ID', 'error');
+                return;
+            }
+            
+            showPlatformOutput('visibilityLiveOutput', `🔄 Connecting to ${provider} tracking API...`, 'info');
+            
+            // Attempt API call based on provider
+            let apiResult;
+            if (provider === 'FourKites') {
+                apiResult = await apiClient.fetchFourKitesData(`${apiConfig.fourKites.endpoints.tracking}/${trackingId}`);
+            } else {
+                apiResult = await apiClient.fetchE2OpenData(`${apiConfig.e2open.endpoints.visibility}/${trackingId}`);
+            }
+            
+            // Generate tracking information (using API data if available, otherwise mock)
+            const trackingInfo = {
+                id: trackingId,
+                status: apiResult?.status || ['In Transit', 'Delayed', 'On Schedule', 'Delivered'][Math.floor(Math.random() * 4)],
+                location: apiResult?.currentLocation || ['Los Angeles, CA', 'Denver, CO', 'Chicago, IL', 'New York, NY'][Math.floor(Math.random() * 4)],
+                eta: apiResult?.estimatedArrival || `${Math.floor(Math.random() * 48) + 1} hours`,
+                lastUpdate: apiResult?.lastUpdated || new Date().toLocaleString()
+            };
+            
+            // Update visibility data
+            mockData.visibility.fourKites.shipments++;
+            updateVisibilityData();
+            
+            const outputMessage = apiResult ? 
+                `🔍 ${provider} Shipment Track via Live API!
+                 📋 Tracking ID: ${trackingId}
+                 📍 Current Location: ${trackingInfo.location}
+                 📊 Status: ${trackingInfo.status}
+                 ⏰ ETA: ${trackingInfo.eta}
+                 🔗 ${provider} Platform: Connected
+                 📡 Real-time GPS tracking active
+                 🔄 Live shipment visibility updated` :
+                `🔍 ${provider} Shipment Tracking (Demo Mode)!
+                 📋 Tracking ID: ${trackingId}
+                 📍 Current Location: ${trackingInfo.location}
+                 📊 Status: ${trackingInfo.status}
+                 ⏰ ETA: ${trackingInfo.eta}
+                 ⚠️ Note: Configure ${provider} API credentials for live tracking
+                 🔄 Using demonstration tracking data`;
+            
+            showPlatformOutput('visibilityLiveOutput', outputMessage, apiResult ? 'success' : 'warning');
+            
+            document.getElementById('shipmentTrackingId').value = '';
+            addManualAlert(`${provider}: Shipment ${trackingId} tracked - Status: ${trackingInfo.status} ${apiResult ? '(Live API)' : '(Demo)'}`);
+        }
+
+        async function createVisibilityAlert() {
+            const eventType = document.getElementById('alertEventType').value;
+            const description = document.getElementById('alertDescription').value.trim();
+            
+            if (!description) {
+                showPlatformOutput('visibilityLiveOutput', '❌ Please enter alert description', 'error');
+                return;
+            }
+            
+            showPlatformOutput('visibilityLiveOutput', '🔄 Creating visibility alert...', 'info');
+            
+            // Attempt API call for alert creation
+            const alertData = {
+                eventType: eventType,
+                description: description,
+                timestamp: new Date().toISOString(),
+                priority: eventType === 'Exception' ? 'High' : 'Medium'
+            };
+            
+            const fourKitesResult = await apiClient.fetchFourKitesData(apiConfig.fourKites.endpoints.alerts, {
+                method: 'POST',
+                body: JSON.stringify(alertData)
+            });
+            
+            const alertId = fourKitesResult?.alertId || `VA-${Math.floor(Math.random() * 10000) + 1000}`;
+            
+            // Add alert to mock data
+            if (eventType === 'Exception' || eventType === 'Delay Alert') {
+                mockData.visibility.e2open.riskAlerts.unshift({
+                    level: eventType === 'Exception' ? 'High' : 'Medium',
+                    message: description
+                });
+            }
+            
+            updateVisibilityData();
+            
+            const outputMessage = fourKitesResult ? 
+                `🚨 Visibility Alert Created via API!
+                 🆔 Alert ID: ${alertId}
+                 📋 Event Type: ${eventType}
+                 📝 Description: ${description}
+                 ⚡ Priority: ${alertData.priority}
+                 🔗 FourKites/E2Open: Connected
+                 📧 Stakeholder notifications sent
+                 🔄 Real-time alert system updated` :
+                `🚨 Visibility Alert Created (Demo Mode)!
+                 🆔 Alert ID: ${alertId}
+                 📋 Event Type: ${eventType}
+                 📝 Description: ${description}
+                 ⚡ Priority: ${alertData.priority}
+                 ⚠️ Note: Configure API credentials for live alert notifications
+                 🔄 Using demonstration alert system`;
+            
+            showPlatformOutput('visibilityLiveOutput', outputMessage, fourKitesResult ? 'success' : 'warning');
+            
+            document.getElementById('alertDescription').value = '';
+            addManualAlert(`Visibility: ${eventType} alert created - ${description} ${fourKitesResult ? '(Live API)' : '(Demo)'}`);
+        }
+
+        // Generic platform output function
+        function showPlatformOutput(outputId, message, type = 'info') {
+            const outputDiv = document.getElementById(outputId);
+            const timestamp = new Date().toLocaleTimeString();
+            
+            let icon = '📊';
+            let bgColor = '#e3f2fd';
+            let textColor = '#1976d2';
+            
+            if (type === 'success') {
+                icon = '✅';
+                bgColor = '#e8f5e8';
+                textColor = '#2e7d32';
+            } else if (type === 'error') {
+                icon = '❌';
+                bgColor = '#ffebee';
+                textColor = '#d32f2f';
+            } else if (type === 'warning') {
+                icon = '⚠️';
+                bgColor = '#fff3e0';
+                textColor = '#f57c00';
+            }
+            
+            outputDiv.innerHTML = `
+                <div style="background: ${bgColor}; border-radius: 8px; padding: 1rem; border-left: 4px solid ${textColor};">
+                    <div style="color: ${textColor}; font-weight: 600; margin-bottom: 0.5rem;">
+                        ${icon} Live Processing Result
+                    </div>
+                    <div style="white-space: pre-line; color: #333; font-family: monospace; font-size: 0.85rem;">
+${message}
+                    </div>
+                    <div style="color: #666; font-size: 0.8rem; margin-top: 0.5rem;">
+                        ⏰ Processed at: ${timestamp}
+                    </div>
+                </div>
+            `;
+            
+            // Add pulsing animation
+            outputDiv.style.animation = 'pulse 0.5s ease-in-out';
+            setTimeout(() => {
+                outputDiv.style.animation = '';
+            }, 500);
+        }
+    </script>
+</body>
+</html>
