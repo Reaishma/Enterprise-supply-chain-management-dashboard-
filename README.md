@@ -121,7 +121,7 @@ This project is built upon the **APICS Supply Chain Operations Reference (SCOR)*
 - **Live Analytics**: Dynamic charts and metrics visualization
 
 ### Core Functionality
-- **Inventory Management**and Transportation Management: Track and update inventory levels across different products and locations,management shipments,stock alertsand track freight cost.
+- **Inventory Management and Transportation Management**: Track and update inventory levels across different products and locations,management shipments,stock alertsand track freight cost.
 - **Purchase Order Management**: Create, approve, and track purchase orders
 - **Supplier Management**: Monitor supplier performance and relationships
 - **Risk Management**: Identify and mitigate supply chain risks
