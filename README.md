@@ -3,6 +3,10 @@
 
 A comprehensive Spring Boot application that provides a unified dashboard for managing enterprise supply chain operations across multiple platforms including SAP, Oracle, Microsoft Dynamics, and more. This project implements the **APICS Supply Chain Operations Reference (SCOR)** model and integrates modern supply chain management frameworks.
 
+## 🚀 Live Demo 
+
+[View live demo](https://reaishma.github.io/Enterprise-supply-chain-management-dashboard-/)
+
 ## 🏭 Supply Chain Management Framework
 
 This project implements a comprehensive Supply Chain Management (SCM) framework that integrates multiple enterprise platforms to provide unified visibility and control over supply chain operations, following industry best practices and standards.
