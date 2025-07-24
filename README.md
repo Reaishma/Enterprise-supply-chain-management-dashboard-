@@ -121,7 +121,7 @@ This project is built upon the **APICS Supply Chain Operations Reference (SCOR)*
 - **Live Analytics**: Dynamic charts and metrics visualization
 
 ### Core Functionality
-- **Inventory Management**: Track and update inventory levels across different products and locations
+- **Inventory Management**and Transportation Management: Track and update inventory levels across different products and locations,management shipments,stock alertsand track freight cost.
 - **Purchase Order Management**: Create, approve, and track purchase orders
 - **Supplier Management**: Monitor supplier performance and relationships
 - **Risk Management**: Identify and mitigate supply chain risks
@@ -133,6 +133,10 @@ This project is built upon the **APICS Supply Chain Operations Reference (SCOR)*
 - **Cost Analytics**: Comprehensive spend analysis
 - **Performance Metrics**: Real-time KPI monitoring
 - **Integration APIs**: RESTful APIs for third-party integrations
+- **Warehouse operations management**:
+manage warehouse operations and track utilisation in real time 
+- **interaction with multiple systems**:
+SAP,SCM, Oracle SCM, dynamics 365, blue yonder,transporean, cerasis,four kitesand E2Open
 
 ## 🏗️ Architecture
 
