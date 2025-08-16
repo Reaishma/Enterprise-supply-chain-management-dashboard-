@@ -5,7 +5,7 @@ A comprehensive Spring Boot application that provides a unified dashboard for ma
 
 # 🚀 Live Demo 
 
-[View live demo](https://reaishma.github.io/Enterprise-supply-chain-management-dashboard-/)
+View live demo on https://reaishma.github.io/Enterprise-supply-chain-management-dashboard-/
 
 ## 🏭 Supply Chain Management Framework
 
