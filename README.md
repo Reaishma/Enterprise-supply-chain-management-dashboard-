@@ -13,6 +13,8 @@ View live demo on https://reaishma.github.io/Enterprise-supply-chain-management-
 
 This project implements a comprehensive Supply Chain Management (SCM) framework that integrates multiple enterprise platforms to provide unified visibility and control over supply chain operations, following industry best practices and standards.
 
+![overview](https://github.com/Reaishma/Enterprise-supply-chain-management-dashboard-/blob/main/Screenshot_20250903-174501_1.jpg)
+
 ### APICS Framework Integration
 
 This project is built upon the **APICS Supply Chain Operations Reference (SCOR)** model, which provides a structured approach to supply chain management:
