@@ -1,6 +1,8 @@
 
 # Enterprise Supply Chain Management 
 
+   ![Enterprise supply chain management platform](https://github.com/Reaishma/Project-portfolio/blob/main/Screenshot_20250903-150435_1.jpg)
+
 A comprehensive Spring Boot application that provides a unified dashboard for managing enterprise supply chain operations across multiple platforms including SAP, Oracle, Microsoft Dynamics, and more. This project implements the **APICS Supply Chain Operations Reference (SCOR)** model and integrates modern supply chain management frameworks.
 
 # 🚀 Live Demo 
