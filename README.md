@@ -108,6 +108,9 @@ This project is built upon the **APICS Supply Chain Operations Reference (SCOR)*
 - Demand forecasting
 
 ##### Logistics & Transportation
+
+![Supply chain visibility](https://github.com/Reaishma/Enterprise-supply-chain-management-dashboard-/blob/main/Screenshot_20250903-174548_1.jpg)
+
 - Shipment tracking
 - Route optimization
 - Carrier management
