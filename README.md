@@ -40,6 +40,9 @@ This project is built upon the **APICS Supply Chain Operations Reference (SCOR)*
 - **Manufacturing Execution**: Shop floor control and monitoring
 
 ##### 4. **DELIVER** - Order Fulfillment and Logistics
+
+![Transportation](https://github.com/Reaishma/Enterprise-supply-chain-management-dashboard-/blob/main/Screenshot_20250903-174545_1.jpg)
+
 - **Order Management**: End-to-end order processing
 - **Warehouse Management**: Inventory tracking and optimization
 - **Transportation Management**: Transporeon and Cerasis integration
