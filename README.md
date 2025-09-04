@@ -354,6 +354,9 @@ spring.jpa.show-sql=true
 ### APICS-Driven Optimization
 
 #### Demand Planning (PLAN)
+
+![Demand forecasting](https://github.com/Reaishma/Enterprise-supply-chain-management-dashboard-/blob/main/Screenshot_20250903-174531_1.jpg)
+
 - Historical data analysis and trend identification
 - Seasonal pattern recognition and forecasting
 - Machine learning-based demand prediction
