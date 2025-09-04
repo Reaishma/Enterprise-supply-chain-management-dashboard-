@@ -34,6 +34,9 @@ This project is built upon the **APICS Supply Chain Operations Reference (SCOR)*
 - **Contract Management**: Supplier agreements and compliance monitoring
 
 ##### 3. **MAKE** - Manufacturing and Production
+
+![Dynamics 365](https://github.com/Reaishma/Enterprise-supply-chain-management-dashboard-/blob/main/Screenshot_20250903-174535_1.jpg)
+
 - **Production Planning**: Microsoft Dynamics 365 integration
 - **Capacity Management**: Real-time capacity monitoring
 - **Quality Management**: Quality control and assurance processes
