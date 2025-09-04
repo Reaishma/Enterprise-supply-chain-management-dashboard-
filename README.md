@@ -309,6 +309,9 @@ spring.jpa.show-sql=true
 - **Real-time Updates**: Live data refresh without page reload
 
 ### Platform-Specific Interfaces
+
+![SAP SCM](https://github.com/Reaishma/Enterprise-supply-chain-management-dashboard-/blob/main/Screenshot_20250903-174522_1.jpg)
+
 - **SAP Integration**: Procurement and planning modules
 - **Oracle SCM**: Risk management and analytics
 - **Microsoft Dynamics**: Warehouse and operations management
