@@ -123,6 +123,9 @@ This project is built upon the **APICS Supply Chain Operations Reference (SCOR)*
 - Business continuity planning
 
 ##### Analytics & Reporting
+
+![Oracle SCM](https://github.com/Reaishma/Enterprise-supply-chain-management-dashboard-/blob/main/Screenshot_20250903-174527_1.jpg)
+
 - Real-time dashboards
 - Performance KPIs
 - Predictive analytics
