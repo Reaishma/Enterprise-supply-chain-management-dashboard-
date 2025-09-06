@@ -9,6 +9,10 @@ A comprehensive Spring Boot application that provides a unified dashboard for ma
 
 View live demo on https://reaishma.github.io/Enterprise-supply-chain-management-dashboard-/
 
+## Developer 🧑‍💻 
+
+**Reaishma N**
+
 ## 🏭 Supply Chain Management Framework
 
 This project implements a comprehensive Supply Chain Management (SCM) framework that integrates multiple enterprise platforms to provide unified visibility and control over supply chain operations, following industry best practices and standards.
@@ -436,7 +440,7 @@ spring.jpa.show-sql=true
 - Real-time data synchronization
 - API-first integration approach
 
-## 🚀 Deployment on Replit
+## 🚀 Deployment
 
 ### Local Development
 ```bash
@@ -444,11 +448,11 @@ mvn clean compile
 mvn spring-boot:run
 ```
 
-### Replit Deployment
-This application is optimized for deployment on Replit:
+### Deployment
+
 
 1. **Automatic Dependency Management**: Maven automatically handles all dependencies
-2. **Port Configuration**: Application runs on port 8080 (configured for Replit)
+2. **Port Configuration**: Application runs on port 8080 
 3. **Database**: Uses H2 in-memory database for quick startup
 4. **Static Files**: Dashboard served from `src/main/resources/static/`
 
@@ -525,14 +529,12 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ### Getting Help
 - **Issues**: Create an issue in the repository for bug reports
-- **Discussions**: Join discussions for feature requests and questions
-- **Documentation**: Check the comprehensive documentation
+- **Documentation**: Check the comprehensive documentation Readme.md
 - **Community**: Connect with other supply chain professionals
 
 ### Professional Services
 - Implementation consulting
 - Custom integration development
-- Training and certification support
 - Performance optimization services
 
 ## 🔮 Future Enhancements
